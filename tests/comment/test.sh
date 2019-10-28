@@ -1,4 +1,4 @@
 #!/bin/sh
 
-latex main
-latex sub
+pdflatex main
+pdflatex sub
