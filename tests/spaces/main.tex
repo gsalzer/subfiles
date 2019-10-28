@@ -1,0 +1,32 @@
+\documentclass{article}
+\usepackage{subfiles}
+\parindent0mm
+\begin{document}
+The \verb|\subfile| command behaves like the \verb|\input| command:
+one space stems from the space after the command, one space from the
+end of the text in the subfile.  \medskip
+
+Included via subfile:
+
+\subfile{s1}
+\subfile{s1}\subfile{s1}
+
+\medskip
+
+Included via input:
+
+\input{s2}
+\input{s2}\input{s2}
+\bigskip
+
+Now the extra space in the subfile has been removed.
+
+\subfile{s3}
+\subfile{s3}\subfile{s3}
+\bigskip
+
+Now there are extra lines after \verb|\end{document}| in the subfile.
+
+\subfile{s4}
+\subfile{s4}\subfile{s4}
+\end{document}
