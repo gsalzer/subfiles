@@ -23,13 +23,13 @@
 %
 %<*driver>
 % \fi
-\ProvidesFile{subfiles.dtx}[2019/10/25 v1.4 Multi-file projects]
+\ProvidesFile{subfiles.dtx}[2019/10/28 pre-v1.5 Multi-file projects]
 % \iffalse
 \documentclass{ltxdoc}
 \GetFileInfo{subfiles.dtx}
 \title{A Document Class and a Package\\for Handling Multi-File Projects}
-\date{\filedate{}}
- \author{Federico Garcia, Gernot Salzer}
+\date{pre-v1.5 2019/10/28}
+\author{Federico Garcia, Gernot Salzer}
 
 \begin{document}
 \maketitle
@@ -172,13 +172,13 @@
 % \end{center}
 % Then each of the three files can be typeset individually in its respective directory, where \LaTeX\ is able to locate all included text files and images.
 % 
-% \subsection{Additional definitions for subfiles}
+% \subsection{Unusual places for providing definitions and text}
 %
 % Usually all definitions and packages required by the subfiles should go into the preamble of the main file.
 % There are some places, though, where one might consider adding definitions for the subfiles.
 %
 % \paragraph{Code after the end of the main document} is added to the preamble of the subfiles, but is ignored when typesetting the main file.
-% This happens because a subfile typeset by itself does not really take the preamble of the main file, but \emph{everything outside} of \verb|\begin{document}| and \verb|\end{document}|.
+% This happens because a subfile typeset by itself does not really take the preamble of the main file, but \emph{everything outside} of |\begin{document}| and |\end{document}|.
 % This has two consequences: \emph{a)}~the user can add some commands to be processed as part of the preamble only when the subfiles are typeset by themselves; but also \emph{b)}~the user has to be careful even \emph{after} |\end{document}| in the main file, for any syntax error there will ruin the \LaTeX ing of the subfile(s).
 %
 % \paragraph{Code in the preamble of a subfile} is processed as part of the text when typesetting the main file, but as part of the preamble when typesetting the subfile.
@@ -186,11 +186,16 @@
 % One should also keep in mind that each subfile is input within a group, so definitions made within may not work outside.
 % A good practice when using |subfiles| (and also when not using it) is to make any definitions in the preamble of the main file, avoiding confusion and allowing the reader to find them easily.
 %
+% \paragraph{Code after the end of a subfile} is treated like the code preceding it when the subfile is loaded from the main file, but is ignored when typesetting the subfile.
+% The code after |\end{document}| behaves as if following the |\subfile| command in the main file, except that it is still part of the group enclosing the subfile.
+% As a consequence, empty lines at the end of the subfile lead to a new paragraph in the main document, even if the |\subfile| command is immediately followed by text.
+%
 % \subsection{Avoiding extra spaces}
 %
 % Sometimes you may want to load the contents of a subfile without white space separating it from the contents of the main file.
-% In this respect |\subfile| behaves like |\input|.
+% In this respect |\subfile| behaves similar to |\input|.
 % Any space or newline before and after the |\subfile| command will appear in the typeset document, as will any white space between the last character of the subfile and |\end{document}|.
+% Moreover, any stuff after |\end{document}| will end up in the main document, including spurious empty lines, which may lead to a new paragraph.
 % Therefore, to load the contents of a subfile without intervening spaces, you have either to add comment signs:
 % \begin{center}
 %   \begin{tabular}[t]{l}
@@ -210,6 +215,7 @@
 %       |\begin{document}|\\
 %       |contents of subfile%|\\
 %       |\end{document}|\\
+%       |% No empty lines after \end{document}!|\\
 %       \hline
 %   \end{tabular}
 % \end{center}
@@ -230,14 +236,22 @@
 % \begin{description}
 % \item[v1.1 (FG):]
 %   Start of version history.
-% \item[v1.2 (GS):]
-%   The |subfiles| package becomes compatible with classes and packages that modify the |\document| command, like the class |revtex4|.
-% \item[v1.3 (GS):]
-%   Use of |import| package to handle directory hierarchies.
-%   |\ignorespaces| added to avoid spurious spaces.
-%   Incompatibility with commands removed that expect |\document| to be equal to |\@onlypreamble| after the preamble (thanks to Eric Domenjoud for analysing the problem).
-% \item[v1.3 (GS):]
-%   Incompatibility with |memoir| class and |comment| package removed.
+% \item[v1.2 (GS):] \mbox{}
+%   \begin{itemize}
+%   \item Incompatibility with classes and packages removed that modify the |\document| command, like the class |revtex4|.
+%   \end{itemize}
+% \item[v1.3 (GS):] \mbox{}
+%   \begin{itemize}
+%   \item Use of |import| package to handle directory hierarchies.
+%   \item |\ignorespaces| added to avoid spurious spaces.
+%   \item Incompatibility with commands removed that expect |\document| to be equal to |\@onlypreamble| after the preamble (thanks to Eric Domenjoud for analysing the problem).
+%   \end{itemize}
+% \item[v1.4 (GS):] \mbox{}
+%   \begin{itemize}
+%   \item Incompatibility with |memoir| class and |comment| package removed.
+%   \item Bug `|\unskip| cannot be used in vertical mode` fixed.
+%   \end{itemize}
+% \item[v1.5 (GS):]
 % \end{description}
 %
 %\section{The Implementation}
