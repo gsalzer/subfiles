@@ -1,0 +1,166 @@
+% \iffalse meta-comment
+%
+% subfiles - class and package for multi-file projects in LaTeX
+% Copyright 2002, 2012 Federico Garcia (feg8@pitt.edu, fedegarcia@hotmail.com)
+%
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.3
+% of this license or (at your option) any later version.
+% The latest version of this license is in
+%   http://www.latex-project.org/lppl.txt
+% and version 1.3 or later is part of all distributions of LaTeX
+% version 2005/12/01 or later.
+%
+% This work has the LPPL maintenance status `maintained'.
+% 
+% The Current Maintainer of this work is Federico Garcia.
+%
+% This work consists of the files subfiles.dtx and subfiles.ins
+% and the derived files subfiles.sty and subfiles.pdf
+%
+% -------------------------------------------
+%
+%<*driver>
+% \fi
+\ProvidesFile{subfiles.dtx}[2012/05/23 v1.1 Multi-file projects]
+% \iffalse
+\documentclass{ltxdoc}
+\GetFileInfo{subfiles.dtx}
+\title{A Document Class and a Package for handling multi-files projects}
+\date{\filedate{}}
+ \author{Federico Garcia}
+
+\begin{document}
+\maketitle
+ \DocInput{\filename}
+\end{document}
+%</driver>
+% \fi
+% \begin{abstract}
+% With the |subfiles| set, the typesetting of a multi-file project consisting of one main file and one or more subsidiary files (subfiles) is more comfortable, since the user can \LaTeX\ either the main file, which will |\input| the subfiles normally, or the subfiles by themselves, which take the preamble of the main file and become self-sufficient \LaTeX\ documents.
+% \end{abstract}
+% \section{Introduction}
+% \LaTeX\ commands |\include| and |\input| allow for the creation of different input files to be typeset jointly into a single output. The advantages of this are evident in the creation of large documents with many chapters, but there are also other circumstances in which the author might want to use this feature. I have used it particularly for long-coded examples, tables, figures, etc\@.\footnote{In my case most times it has been musical examples, whose code in MusiX\TeX\ is long, intrincate, and barely readable.}, which require a considerable amount of trial-and-error. 
+%
+% In this process the rest of the document is of little use, and it can even disturb.\footnote{For example, the error messages indicate not only a wrong line number, but even the wrong file.} Frequently, one ends up wanting to work \emph{only} on the new file, which means following three steps:
+% 
+% \begin{itemize}
+% \item Create a new file, and copy-paste in it the preamble of the main file;
+% \item Work in the example, typeset it \emph{alone} as many times as necessary; 
+% \item When the result is satisfactory, delete the preamble from the new file (and the |\end{document}|!), and |\include| or (more frequently) |\input| it from the main file.
+% \end{itemize}
+% 
+% It is desirable to reduce these three steps to the only interesting one, the middle one. This would mean that each new, subordinated file (henceforth, `subfile') should be \emph{both} part of a project and a self-sufficient \LaTeX\ document, depending on whether it is \LaTeX ed or |\included|/|\input|. This is what the set of class and package under the name |subfiles| is intended for. 
+%
+% The main idea behind it is the redefinition of |\documentclass| and the `environment' |document|; while these two features of \LaTeX\ are important to keep unchanged, |subfiles| changes them, as far as I know, harmlessly, and I have took care of undoing the changes when finished. This is the first version of |subfiles|, and although I have tried it a few times, it is still susceptible of conflicting with other packages and/or classes.
+% 
+% \section{Usage}
+% 
+% \subsection{Setting up}
+% 
+% The files involved have the following basic structures:
+% 
+% \begin{center}\small
+% \begin{tabular}{ll}
+% \multicolumn{1}{c}{\emph{MAIN FILE}} & \multicolumn{1}{c}{\emph{SUBFILE}}\\
+% \qquad\meta{some preamble} & |\documentclass[|\meta{main\_file\_name}|]{subfiles}|\\
+% |\usepackage{subfiles}| & |\begin{document}|\\
+% \qquad\meta{more preamble} & \qquad\meta{text, graphics, etc.}\\
+% |\begin{document}|&|\end{document}|\\
+% \qquad\meta{text}\\
+% |\subfile{|\meta{subfile\_name}|}|\\
+% \qquad\meta{more text}\\
+% |\end{document}|
+% \end{tabular}
+% \end{center}
+% 
+% The |subfiles| package is to be loaded in the main file of a \LaTeX\ project, and the |subfiles| class is to be loaded by each subordinate file. Note that the |subfiles| class handles only \emph{one} `option' (whose presence is actually mandatory), the name of the main file. The name should be given following \TeX\ conventions: |.tex| is the default extension; the path has to be indicated (|/|, not |\|) if the main file is in a different directory from the subfile; spaces are gobbled (at least under Windows).
+% 
+% \subsection{Results}
+% This done, \LaTeX ing either the main or the subordinate file produces the following results:
+% \begin{itemize}
+% \item If the subfile is typeset by itself, it takes as preamble the one of the main file (including its |\documentclass|). The rest is typeset normally.
+% \item If the subordinated file was |\subfile|'d, it ignores everything before and including |\begin{document}|, and the ignores |\end{document}| too. (The body of the file, nothing else, is effectively |\input|.)
+% \end{itemize}
+% 
+% The |\subfile| command is more like |\input| than |\include| in the sense that it does not start a new page. It allows nesting, but there is no exclusion mechanism analogous to |\includeonly|. 
+%
+% \subsection{Further details and warnings}
+%
+% In all truth, a subfile typeset by itself does not exactly take the preamble of the main file, but \emph{anything outside} \verb|\begin{document}| and \verb|\end{document}|. This has two consequences: $a)$~the user can make some commands to be read only when the subfiles are typeset by themselves---which in any case are processed as part of the preamble; but also $b)$~the user has to be careful even \emph{after} |\end{document}| (in the main file), for any syntax error there will ruin the \LaTeX ing of the subfile(s).
+%
+% The preamble of the main file can |\input| (not |\include| nor |\subfile|) other files (v.g\@. files with definitions and shorthand-commands), and the subfiles will too. But it has to be kept in mind that each subfile is |\input| within a group, so definitions made within them might not work outside. A good practice when using |subfiles| (and also when not using it) is to make any definitions in the preamble of the main file, avoiding confusion and allowing to find them easily.
+%
+% In principle, nesting files with |\subfile| should work and has worked in my tries, as far as every subfile loads the main file as its option to the |subfiles| class. However, who knows, the behavior can be unpredictable in weird situations. In any case, |subfiles| does \emph{not} disable |\include| nor |\input|, which remain available for free use.
+%
+% |subfiles| class and package require the |verbatim| package (whose |comment| environment is used to ignore the different parts of different files); this should not be a problem since it makes part of the standard distribution of \LaTeX $2_\varepsilon$.
+%
+%\section{The Implementation}
+%\subsection{The class}
+%    \begin{macrocode}
+%<*class>
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesClass{subfiles}[2012/05/23 Federico Garcia]
+\RequirePackage{verbatim}
+\DeclareOption*{\typeout{Preamble taken from file `\CurrentOption'}%
+    \let\preamble@file\CurrentOption}
+\ProcessOptions
+%    \end{macrocode}
+%
+% The first thing to do is to save the regular \LaTeX\ definitions of |\document|, |\enddocument|, and  |\documentclass|:
+%    \begin{macrocode}
+\let\old@document@subfiles\document
+\let\old@enddocument@subfiles\enddocument
+\let\old@documentclass@subfiles\documentclass
+%    \end{macrocode}
+%
+% Now the |document| `environment' is redefined and equaled to |comment|. As a consequence, the body of the main file is ignored by \LaTeX, and only the preamble is read (and anything that comes after |\end{document}|!). For |\documentclass|, having been already loaded one (|subfiles|), it is redefined and equaled to |\LoadClass|. The class and options of the main file are loaded identically.
+%    \begin{macrocode}
+\let\document\comment
+\let\enddocument\endcomment
+\let\documentclass\LoadClass\relax
+%    \end{macrocode}
+%
+% Now it is possible to |\input| the main file, and then restore the original values of |\document|, |\enddocument| and |\documentclass|. The backup commands are |\undefined| to save memory. That's it.
+%    \begin{macrocode}
+\input{\preamble@file}
+%    \end{macrocode}
+%
+% Here it comes something not so obvious. In the usual situations, the |\preamble@file| contains some |\usepackage| commands, which, at the end, make |@| no longer a letter. That is why the next part needs a |\catcode| command, grouping, and |\global|'s.
+%    \begin{macrocode}
+{\catcode`\@=11
+\global\let\document\old@document@subfiles
+\global\let\enddocument\old@enddocument@subfiles
+\global\let\documentclass\old@documentclass@subfiles
+\global\let\old@document@subfiles\undefined
+\global\let\old@enddocument@subfiles\undefined
+\global\let\old@documentclass@subfiles\undefined}
+%</class>
+%    \end{macrocode}
+%
+% \subsection{The package}
+% Any option will be ignored. 
+%    \begin{macrocode}
+%<*package>
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{subfiles}[2012/05/23 Federico Garcia]
+\DeclareOption*{\PackageWarning{\CurrentOption ignored}}
+\ProcessOptions
+\RequirePackage{verbatim}
+%    \end{macrocode}
+%
+% \DescribeMacro{\skip@preamble}
+% The core of the package. It works by redefining the |document| `environment,' thus making the |\begin| and |\end{document}| of the subfile `transparent' to the inclusion. The redefinition of |\documentclass| is analogous, just having a required and an optional arguments which mean nothing to |\subfile|.
+%    \begin{macrocode}
+\newcommand{\skip@preamble}{%
+    \let\document\relax\let\enddocument\relax%
+    \newenvironment{document}{}{}%
+    \renewcommand{\documentclass}[2][subfiles]{}}
+%    \end{macrocode}
+% 
+% \DescribeMacro{\subfile}
+% Note that the new command |\subfile| calls for |\skip@preamble| \emph{within a group}. The changes to |document| and |\documentclass| are undone after the inclusion of the subfile. 
+%    \begin{macrocode}
+\newcommand\subfile[1]{\begingroup\skip@preamble\input{#1}\endgroup}
+%</package>
+%    \end{macrocode}
