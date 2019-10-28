@@ -23,7 +23,7 @@
 %
 %<*driver>
 % \fi
-\ProvidesFile{subfiles.dtx}[2019/09/28 v1.3 Multi-file projects]
+\ProvidesFile{subfiles.dtx}[2019/10/25 v1.4 Multi-file projects]
 % \iffalse
 \documentclass{ltxdoc}
 \GetFileInfo{subfiles.dtx}
@@ -43,8 +43,7 @@
 % \end{abstract}
 % \section{Introduction}
 % The \LaTeX\ commands |\include| and |\input| allow the user to split the \TeX\ source of a document into several input files.
-% This is useful when creating documents with many chapters, but also for handling large tables, figures, and code samples, which require a considerable amount of trial-and-errors.%
-% \footnote{Frederico had to typset numerous musical examples, whose code in MusiX\TeX\ is long, intrincate, and barely readable.} 
+% This is useful when creating documents with many chapters, but also for handling large tables, figures, and code samples, which require a considerable amount of trial-and-errors.
 %
 % In this process the rest of the document is of little use, and can even interfere.
 % For example, error messages may indicate not only the wrong line number, but may point to the wrong file.
@@ -184,7 +183,7 @@
 %
 % \paragraph{Code in the preamble of a subfile} is processed as part of the text when typesetting the main file, but as part of the preamble when typesetting the subfile.
 % This means that the preamble of a subfile can only contain stuff that is acceptable for both, the preamble and the text area.
-% One should also keep in mind that each subfile is |\input| within a group, so definitions made within may not work outside.
+% One should also keep in mind that each subfile is input within a group, so definitions made within may not work outside.
 % A good practice when using |subfiles| (and also when not using it) is to make any definitions in the preamble of the main file, avoiding confusion and allowing the reader to find them easily.
 %
 % \subsection{Avoiding extra spaces}
@@ -237,6 +236,8 @@
 %   Use of |import| package to handle directory hierarchies.
 %   |\ignorespaces| added to avoid spurious spaces.
 %   Incompatibility with commands removed that expect |\document| to be equal to |\@onlypreamble| after the preamble (thanks to Eric Domenjoud for analysing the problem).
+% \item[v1.3 (GS):]
+%   Incompatibility with |memoir| class and |comment| package removed.
 % \end{description}
 %
 %\section{The Implementation}
@@ -244,7 +245,7 @@
 %    \begin{macrocode}
 %<*class>
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{subfiles}[2019/09/28 v1.3 Federico Garcia, Gernot Salzer]
+\ProvidesClass{subfiles}[2019/10/25 v1.4 Multi-file projects (class)]
 \DeclareOption*{\typeout{Preamble taken from file `\CurrentOption'}%
     \let\preamble@file\CurrentOption}
 \ProcessOptions  
@@ -262,6 +263,21 @@
 \let\documentclass\LoadClass\relax
 %    \end{macrocode}
 %
+% When typesetting a subfile, we have to skip the |document| environment of the main file.
+% This is done with the commands |\comment| and |\endcomment| from the |verbatim| package.
+% Now there is a problem:
+% If we load |verbatim| here, the definition of the commands may be overwritten if the user loads e.g.\ the |comment| package.
+% Loading |verbatim| in |subfiles.sty| at the latest possible moment is not reliable, either.
+% On the one hand we may overwrite macros required later by the user, on the other hand the |memoir| class contains a copy of |verbatim|, so a later |\RequirePackage| refuses to reload the package.
+% Thus, in the case of a document loading the |memoir| class and the |comment| package, we end up with the wrong definition of |\comment| in any case.
+%
+% Therefore we load the |verbatim| package here and save the contents of the crucial commands |\comment| and |\endcomment| under a different name.
+%    \begin{macrocode}
+\RequirePackage{verbatim}
+\let\subfiles@comment\comment
+\let\subfiles@endcomment\endcomment
+%    \end{macrocode}
+% 
 % To handle subfiles in separate directories, we load the |import| package.
 % 
 %    \begin{macrocode}
@@ -269,7 +285,7 @@
 %    \end{macrocode}
 %
 % The |\subimport| command requires the path and the basename of the file to be loaded in separate arguments.
-% Therefore we have to decompose file names into these two components.
+% Therefore we have to split file names into these two components.
 % 
 %    \begin{macrocode}
 \def\subfiles@split#1{%
@@ -329,40 +345,55 @@
 %    \begin{macrocode}
 %<*package>
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{subfiles}[2019/09/28 v1.3 Federico Garcia, Gernot Salzer]
+\ProvidesPackage{subfiles}[2019/10/25 v1.4 Multi-file projects (package)]
 \DeclareOption*{\PackageWarning{\CurrentOption ignored}}
 \ProcessOptions
-\RequirePackage{verbatim}
 %    \end{macrocode}
 %
-% To handle subfiles in separate directories, we load the |import| package.
-% 
+% If the initial document class was |subfiles|, then the main file is loaded as part of a subfile.
+% In this case anything between |\begin{document}| and |\end{document}| has to be skipped, while the contents of the commands |\document| and |\enddocument| has to be retained for later use in the subfile.
+% Therefore we save the contents of the two commands as |\subfiles@document| and |\subfiles@enddocument|, respectively.
+% Now the |document| environment is redefined to become the saved |comment| environment from the |verbatim| package.
+% Consequently, the body of the main file is ignored by \LaTeX, and only the preamble is read (as well as anything that comes after |\end{document}|!).
+%
 %    \begin{macrocode}
-\RequirePackage{import}
+\@ifclassloaded{subfiles}{%
+  \let\subfiles@document\document
+  \let\subfiles@enddocument\enddocument
+  \let\document\subfiles@comment
+  \let\enddocument\subfiles@endcomment
 %    \end{macrocode}
 %
-% The |\import| command requires the path and the basename of files in separate arguments.
-% Therefore we have to decompose file names into these two components.
+% By loading the |subfiles| package immediately before |\begin{document}| we ensure that |\subfiles@document| and |\subfiles@enddocument| contain all modifications that the class and the preamble of the main file may have applied to the |document| environment.
+% This happens e.g.\ with the class |revtex4| and the package |pythontex|.
+%
+% We use the |import| package to handle subfiles in separate directories.
+% The |\subimport| command requires the path and the basename of files as separate arguments.
+% Therefore we split file names into these two components using a macro |\subfiles@split|.
+% Both things, loading the package and defining the command, is also done in |subfiles.cls|, so we have to execute this code only if we are typesetting the main file.
 % 
 %    \begin{macrocode}
-\def\subfiles@split#1{%
-  \edef\subfiles@filename{#1}%
-  \def\subfiles@dir{}%
-  \def\subfiles@base{}%
-  \def\subfiles@sep{}%
-  \expandafter\subfiles@split@\subfiles@filename/\@nil/%
-}
-\def\subfiles@split@#1/{%
-  \def\tmp{#1}%
-  \ifx\tmp\@nnil
-    \let\subfiles@next\relax
-  \else
-    \edef\subfiles@dir{\subfiles@dir\subfiles@base\subfiles@sep}%
-    \def\subfiles@base{#1}%
-    \def\subfiles@sep{/}%
-    \let\subfiles@next\subfiles@split@
-  \fi
-  \subfiles@next  
+}{% subfiles class not loaded
+  \RequirePackage{import}
+  \def\subfiles@split#1{%
+    \edef\subfiles@filename{#1}%
+    \def\subfiles@dir{}%
+    \def\subfiles@base{}%
+    \def\subfiles@sep{}%
+    \expandafter\subfiles@split@\subfiles@filename/\@nil/%
+  }%
+  \def\subfiles@split@#1/{%
+    \def\tmp{#1}%
+    \ifx\tmp\@nnil
+      \let\subfiles@next\relax
+    \else
+      \edef\subfiles@dir{\subfiles@dir\subfiles@base\subfiles@sep}%
+      \def\subfiles@base{#1}%
+      \def\subfiles@sep{/}%
+      \let\subfiles@next\subfiles@split@
+    \fi
+    \subfiles@next
+  }%
 }
 %    \end{macrocode}
 %
@@ -371,42 +402,27 @@
 % \DescribeMacro{\subfile}
 % The command |\subfile| first redefines |\documentclass| and the |document| environment to do nothing.
 % To avoid spurious spaces we |\ignorespaces|.
-% Moreover, we have to set |\document| to the value it usually has after the end of the preamble, since some commands check this value and raise an error saying that the command cannot be used in the preamble.
+% Moreover, we have to set |\document| to the value it usually has after the end of the preamble, since some commands check this value and may raise an error.
 %
 %    \begin{macrocode}
 \newcommand\subfile[1]{%
   \begingroup
   \renewcommand\documentclass[2][subfiles]{\ignorespaces}%
-  \renewenvironment{document}{\let\document\@onlypreamble\ignorespaces}{}%
+  \renewenvironment{document}{%
+    \let\document\@onlypreamble
+    \ignorespaces
+  }{%
+    \@ignoretrue
+  }%
 %    \end{macrocode}
 %
-% Now we split the file name into path and base name and |\subimport| it.
+% Now we split the file name into path and base name and |\subimport| the file.
 %
 %    \begin{macrocode}
   \subfiles@split{#1}%
   \subimport{\subfiles@dir}{\subfiles@base}%
-  \unskip
   \endgroup
 }
 %    \end{macrocode}
-% 
+%
 % Note that the changes to |\documentclass| and the |document| environment happen \emph{within a group}, so they are undone after inclusion of the subfile.
-%
-% If the package is being processed as part of the main file, then we are done.
-% However, if the initial document class was |subfiles|, then the main file is loaded as part of a subfile.
-% In this case anything between |\begin{document}| and |\end{document}| has to be skipped, while the contents of the commands |\document| and |\enddocument| has to be retained for later use in the subfile.
-% Therefore we save the contents of the two commands as |\subfiles@document| and |\subfiles@enddocument|, respectively.
-% Now the |document| environment is redefined to become the |comment| environment from the |verbatim| package.
-% Consequently, the body of the main file is ignored by \LaTeX, and only the preamble is read (as well as anything that comes after |\end{document}|!).
-%    \begin{macrocode}
-\@ifclassloaded{subfiles}{%
-  \let\subfiles@document\document
-  \let\subfiles@enddocument\enddocument
-  \let\document\comment
-  \let\enddocument\endcomment
-}{}
-%</package>
-%    \end{macrocode}
-%
-% By loading the |subfiles| package immediately before |\begin{document}| we ensure that |\subfiles@document| and |\subfiles@enddocument| contain all modifications that the class and the preamble of the main file may have applied to the |document| environment.
-% This happens e.g.\ with the class |revtex4| and the package |pythontex|.
