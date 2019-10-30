@@ -1,0 +1,20 @@
+\documentclass{report}
+\usepackage{biblatex}
+\usepackage{subfiles}
+% At the moment, only the old \bibliography command can be used to add
+% local bib files.  Moreover, this command has to follow the loading
+% of the subfiles package.
+\bibliography{bib1,bib2}
+\begin{document}
+\title{Main document}
+\author{The Author}
+\maketitle
+
+This is a test for using \verb|biber| to generate
+bibliographies chapter-wise with the \verb|biblatex| package.
+
+\subfileinclude{chapter1/chapter1}
+
+\subfileinclude{chapter2/chapter2}
+
+\end{document}

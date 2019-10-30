@@ -1,12 +1,18 @@
 \documentclass{revtex4}
-\usepackage[english]{babel}
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
 \usepackage{graphicx}
 \usepackage{mydefs}
 \usepackage{subfiles}
 \begin{document}
-main
+
+This document uses the class \verb|revtex4|, as this is one of the
+classes that modifies the \verb|\document| command. As of version 1.2
+of the \verb|subfiles| package, this should cause no problems anymore.
+
+The numbers should appear in consecutive order.
+
+0
+
 \subfile{A/sub}
+
 \subfile{B/sub}
 \end{document}

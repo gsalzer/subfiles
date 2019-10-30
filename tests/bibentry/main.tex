@@ -3,6 +3,16 @@
 \nobibliography*
 \usepackage{subfiles}
 \begin{document}
+
+Here, we are testing two things. First, spreading the files across
+different directories and generating the bibliography with
+\verb|bibtex| used to be a problem. Let's hope that it is not anymore.
+Second, the \verb|bibentry| package defines commands that give an
+error when used in the preamble. For this they check whether the
+\verb|\document| command has a specific value. In older versions of
+\verb|subfiles| they found the wrong value and complained, even though
+they were currectly used.
+
 \chapter{First chapter}
-\subfile{sub}
+\subfile{sub/sub}
 \end{document}

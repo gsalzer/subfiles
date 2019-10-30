@@ -1,0 +1,17 @@
+\documentclass{report}
+\usepackage{bibunits}
+\defaultbibliographystyle{apalike}
+\usepackage{subfiles}
+\begin{document}
+\title{Main document}
+\author{The Author}
+\maketitle
+
+This is a test for using \verb|bibtex| to generate bibliographies
+chapter-wise with the \verb|bibunits| package.
+
+\subfile{chapter1/chapter1}
+
+\subfile{chapter2/chapter2}
+
+\end{document}

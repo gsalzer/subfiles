@@ -1,0 +1,16 @@
+\documentclass{report}
+\usepackage{chapterbib}
+\usepackage{subfiles}
+\begin{document}
+\title{Main document}
+\author{The Author}
+\maketitle
+
+This is a test for using \verb|bibtex| to generate bibliographies
+chapter-wise with the \verb|chapterbib| package.
+
+\subfileinclude{chapter1/chapter1}
+
+\subfileinclude{chapter2/chapter2}
+
+\end{document}

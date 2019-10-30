@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 pdflatex main
 pdflatex main

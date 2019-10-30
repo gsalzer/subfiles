@@ -1,0 +1,18 @@
+\documentclass[main]{subfiles}
+\begin{document}
+
+The \verb|pythontex| package is an example of a package that modifies
+the \verb|document| environment. To make \verb|subfiles| cooperate
+with \verb|pythontex|, the \verb|subfiles| package has to be loaded
+\emph{after} the \verb|pythontex| package.
+
+Best follow the general rule: Load \verb|subfiles| last in the preamble.
+
+
+This is a code:
+\begin{pyverbatim}
+print('spam and eggs')
+\end{pyverbatim}
+
+Just printing \pyc{print('spam and eggs')}
+\end{document}
