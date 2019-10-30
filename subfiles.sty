@@ -26,7 +26,7 @@
 %% and the derived files subfiles.sty and subfiles.pdf
 %% 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{subfiles}[2019/10/25 v1.4 Multi-file projects (package)]
+\ProvidesPackage{subfiles}[2019/10/30 v1.5 Multi-file projects (package)]
 \DeclareOption*{\PackageWarning{\CurrentOption ignored}}
 \ProcessOptions
 \@ifclassloaded{subfiles}{%
@@ -56,7 +56,15 @@
     \subfiles@next
   }%
 }
-\newcommand\subfile[1]{%
+\newcommand\subfile{%
+  \let\subfiles@loadfile\subimport
+  \subfiles@subfile
+}
+\newcommand\subfileinclude{%
+  \let\subfiles@loadfile\subincludefrom
+  \subfiles@subfile
+}
+\newcommand\subfiles@subfile[1]{%
   \begingroup
   \renewcommand\documentclass[2][subfiles]{\ignorespaces}%
   \renewenvironment{document}{%
@@ -66,9 +74,29 @@
     \@ignoretrue
   }%
   \subfiles@split{#1}%
-  \subimport{\subfiles@dir}{\subfiles@base}%
+  \subfiles@loadfile{\subfiles@dir}{\subfiles@base}%
   \endgroup
 }
+\def\subfiles@addimportpath#1{%
+  \def\subfiles@filelist{}%
+  \def\subfiles@sep{}%
+  \@for\subfiles@filename:=#1\do{%
+    \edef\subfiles@filelist{\subfiles@filelist\subfiles@sep\import@path\subfiles@filename}%
+    \def\subfiles@sep{,}%
+  }
+}
+\let\subfiles@bibliography\bibliography
+\renewcommand\bibliography[1]{%
+  \subfiles@addimportpath{#1}%
+  \expandafter\subfiles@bibliography\expandafter{\subfiles@filelist}%
+}
+\@ifpackageloaded{bibunits}{%
+  \let\subfiles@putbib\@putbib
+  \def\@putbib[#1]{%
+    \subfiles@addimportpath{#1}%
+    \expandafter\subfiles@putbib\expandafter[\subfiles@filelist]%
+  }%
+}{}
 \endinput
 %%
 %% End of file `subfiles.sty'.
