@@ -23,12 +23,12 @@
 %
 %<*driver>
 % \fi
-\ProvidesFile{subfiles.dtx}[2019/10/28 pre-v1.5 Multi-file projects]
+\ProvidesFile{subfiles.dtx}[2019/10/30 v1.5 Multi-file projects]
 % \iffalse
 \documentclass{ltxdoc}
 \GetFileInfo{subfiles.dtx}
 \title{A Document Class and a Package\\for Handling Multi-File Projects}
-\date{pre-v1.5 2019/10/28}
+\date{v1.5 2019/10/30}
 \author{Federico Garcia, Gernot Salzer}
 
 \begin{document}
@@ -61,7 +61,7 @@
 % 
 % \section{Basic usage}
 %
-% The main file, i.e., the file with the preamble to be shared with the subfiles, has to load the package |subfiles| \emph{at the very end of the preamble}:
+% The main file, i.e., the file with the preamble to be shared with the subfiles, has to load the package |subfiles| \emph{at the end of the preamble}:
 % \begin{center}
 %   \begin{tabular}{l}
 %     |\usepackage{subfiles}|\\
@@ -171,11 +171,33 @@
 % \end{tabular}
 % \end{center}
 % Then each of the three files can be typeset individually in its respective directory, where \LaTeX\ is able to locate all included text files and images.
+%
+% \subsection{Including files instead of inputting them}
+%
+% In plain \LaTeX, you can use either |\input| or |\include| to load a file.
+% In most cases the first is appropriate, but sometimes there are reasons to prefer the latter.
+% Internally, the |\subfile| command uses |\input|.
+% For those cases where you need |\include|, the package provides the command  
+% \begin{center}
+%   |\subfileinclude{|\meta{subfile\_name}|}|
+% \end{center}
+%
+% \subsection{Bibliographies}
+%
+% Manual bibliographies with the |thebibliography| environment work as usual.
+% Problems may arise if external programs like |bibtex| or |biber| are used to generate the bibliography, in particular when the bibliographies are distributed over subfiles.
+% Here are some hints on how it may work.
+% \begin{itemize}
+% \item Make sure the command |\bibliography| is executed after loading the |subfiles| package.
+%   Put the command between |\usepackage{subfiles}| and |\begin{document}| or somewhere into the text part.
+% \item When you use the package |biblatex|, and programs like |biber| complain about not being able to find the bibliography files, use |\bibliography| instead of |\addbibresource| for local files (observing the hint above).
+% \end{itemize}
+% The |subfiles| package has been tested with the packages |biblatex|, |bibunits|, and |chapterbib| as well as the external programs |bibtex| and |biber|. 
 % 
-% \subsection{Unusual places for providing definitions and text}
+% \subsection{Unusual locations for placing definitions and text}
 %
 % Usually all definitions and packages required by the subfiles should go into the preamble of the main file.
-% There are some places, though, where one might consider adding definitions for the subfiles.
+% There are some further locations, though, where one might consider adding definitions and text.
 %
 % \paragraph{Code after the end of the main document} is added to the preamble of the subfiles, but is ignored when typesetting the main file.
 % This happens because a subfile typeset by itself does not really take the preamble of the main file, but \emph{everything outside} of |\begin{document}| and |\end{document}|.
@@ -234,24 +256,30 @@
 % \section{Version history}
 %
 % \begin{description}
-% \item[v1.1 (FG):]
-%   Start of version history.
-% \item[v1.2 (GS):] \mbox{}
+% \item[v1.1:]
+%   Initial version by Federico Garcia. Further versions by Gernot Salzer.
+% \item[v1.2:] \mbox{}
 %   \begin{itemize}
 %   \item Incompatibility with classes and packages removed that modify the |\document| command, like the class |revtex4|.
 %   \end{itemize}
-% \item[v1.3 (GS):] \mbox{}
+% \item[v1.3:] \mbox{}
 %   \begin{itemize}
 %   \item Use of |import| package to handle directory hierarchies.
 %   \item |\ignorespaces| added to avoid spurious spaces.
 %   \item Incompatibility with commands removed that expect |\document| to be equal to |\@onlypreamble| after the preamble (thanks to Eric Domenjoud for analysing the problem).
 %   \end{itemize}
-% \item[v1.4 (GS):] \mbox{}
+% \item[v1.4:] \mbox{}
 %   \begin{itemize}
 %   \item Incompatibility with |memoir| class and |comment| package removed.
 %   \item Bug `|\unskip| cannot be used in vertical mode` fixed.
 %   \end{itemize}
-% \item[v1.5 (GS):]
+% \item[v1.5:] \mbox{}
+%   \begin{itemize}
+%   \item Command |\subfileinclude| added.
+%   \item Basic support for |bibtex| related bibliographies in subfiles added.
+%      Seems to suffice also for sub-bibliographies with the package |chapterbib|.
+%   \item Support for sub-bibliographies with package |bibunits| added.
+%   \end{itemize}
 % \end{description}
 %
 %\section{The Implementation}
@@ -259,10 +287,10 @@
 %    \begin{macrocode}
 %<*class>
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{subfiles}[2019/10/25 v1.4 Multi-file projects (class)]
+\ProvidesClass{subfiles}[2019/10/30 v1.5 Multi-file projects (class)]
 \DeclareOption*{\typeout{Preamble taken from file `\CurrentOption'}%
     \let\preamble@file\CurrentOption}
-\ProcessOptions  
+\ProcessOptions
 %    \end{macrocode}
 %
 % We start by saving the regular \LaTeX\ definition of |\documentclass|:
@@ -359,7 +387,7 @@
 %    \begin{macrocode}
 %<*package>
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{subfiles}[2019/10/25 v1.4 Multi-file projects (package)]
+\ProvidesPackage{subfiles}[2019/10/30 v1.5 Multi-file projects (package)]
 \DeclareOption*{\PackageWarning{\CurrentOption ignored}}
 \ProcessOptions
 %    \end{macrocode}
@@ -414,12 +442,29 @@
 % After executing e.g.\ |\subfiles@split{../dir1/dir2/file.tex}|, the commands |\subfiles@dir| and |\subfiles@base| expand to |../dir1/dir2/| and |file.tex|, respectively.
 %
 % \DescribeMacro{\subfile}
-% The command |\subfile| first redefines |\documentclass| and the |document| environment to do nothing.
-% To avoid spurious spaces we |\ignorespaces|.
-% Moreover, we have to set |\document| to the value it usually has after the end of the preamble, since some commands check this value and may raise an error.
+% The command |\subfile| specifies the command |\subimport| for |\input|ing the subfile, and then calls |\subfiles@subfile|.
+%    \begin{macrocode}
+\newcommand\subfile{%
+  \let\subfiles@loadfile\subimport
+  \subfiles@subfile
+}
+%    \end{macrocode}
+%
+% \DescribeMacro{\subfileinclude}
+% The command |\subfileinclude| specifies the command |\subincludefrom| for |\include|ing the subfile, and then calls |\subfiles@subfile|.
+%    \begin{macrocode}
+\newcommand\subfileinclude{%
+  \let\subfiles@loadfile\subincludefrom
+  \subfiles@subfile
+}
+%    \end{macrocode}
+%
+% The main functionality of the two |\subfile| commands is implemented in |\subfiles@subfile|.
+% It redefines |\documentclass| and the |document| environment to do nothing except avoiding spurious spaces.
+% Moreover, |\document| has to be set to the value it usually has after the end of the preamble, since some commands check this value and may raise an error otherwise.
 %
 %    \begin{macrocode}
-\newcommand\subfile[1]{%
+\newcommand\subfiles@subfile[1]{%
   \begingroup
   \renewcommand\documentclass[2][subfiles]{\ignorespaces}%
   \renewenvironment{document}{%
@@ -429,14 +474,46 @@
     \@ignoretrue
   }%
 %    \end{macrocode}
-%
-% Now we split the file name into path and base name and |\subimport| the file.
+% Now we split the file name into path and base name and load the file.
 %
 %    \begin{macrocode}
   \subfiles@split{#1}%
-  \subimport{\subfiles@dir}{\subfiles@base}%
+  \subfiles@loadfile{\subfiles@dir}{\subfiles@base}%
   \endgroup
 }
 %    \end{macrocode}
 %
 % Note that the changes to |\documentclass| and the |document| environment happen \emph{within a group}, so they are undone after inclusion of the subfile.
+%
+% To let external programs find files, we have to add the |\import@path| to file names.
+% This is accomplished with the command |\subfiles@addimportpath|.
+%    \begin{macrocode}
+\def\subfiles@addimportpath#1{%
+  \def\subfiles@filelist{}%
+  \def\subfiles@sep{}%
+  \@for\subfiles@filename:=#1\do{%
+    \edef\subfiles@filelist{\subfiles@filelist\subfiles@sep\import@path\subfiles@filename}%
+    \def\subfiles@sep{,}%
+  }
+}
+%    \end{macrocode}
+%
+% We redefine the |\bibliography| command such that the import path is added to the file names before the original command is called.
+%    \begin{macrocode}
+\let\subfiles@bibliography\bibliography
+\renewcommand\bibliography[1]{%
+  \subfiles@addimportpath{#1}%
+  \expandafter\subfiles@bibliography\expandafter{\subfiles@filelist}%
+}
+%    \end{macrocode}
+%
+% The |bibunits| package uses its own command to specify bib files, we have to patch it separately.
+%    \begin{macrocode}
+\@ifpackageloaded{bibunits}{%
+  \let\subfiles@putbib\@putbib
+  \def\@putbib[#1]{%
+    \subfiles@addimportpath{#1}%
+    \expandafter\subfiles@putbib\expandafter[\subfiles@filelist]%
+  }%
+}{}
+%    \end{macrocode}
