@@ -37,26 +37,13 @@
 \let\subfiles@endcomment\endcomment
 \RequirePackage{import}
 \def\subfiles@split#1{%
-  \edef\subfiles@filename{#1}%
-  \def\subfiles@dir{}%
-  \def\subfiles@base{}%
-  \def\subfiles@sep{}%
-  \expandafter\subfiles@split@\subfiles@filename/\@nil/%
-}
-\def\subfiles@split@#1/{%
-  \def\tmp{#1}%
-  \ifx\tmp\@nnil
-    \let\subfiles@next\relax
-  \else
-    \edef\subfiles@dir{\subfiles@dir\subfiles@base\subfiles@sep}%
-    \def\subfiles@base{#1}%
-    \def\subfiles@sep{/}%
-    \let\subfiles@next\subfiles@split@
-  \fi
-  \subfiles@next
+  \let\subfiles@filename@simple\filename@simple
+  \def\filename@simple##1.\\{\edef\filename@base{##1}}%
+  \filename@parse{#1}%
+  \let\filename@simple\subfiles@filename@simple
 }
 \subfiles@split{\preamble@file}
-\subimport{\subfiles@dir}{\subfiles@base}
+\subimport{\filename@area}{\filename@base}
 {\catcode`\@=11
 \global\let\document\subfiles@document
 \global\let\enddocument\subfiles@enddocument

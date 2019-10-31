@@ -1,10 +1,8 @@
 #!/bin/bash
 
 pdflatex main
-pdflatex main
 
 cd include
-pdflatex chapter1
 pdflatex chapter1
 
 cd figure

@@ -34,27 +34,14 @@
   \let\subfiles@enddocument\enddocument
   \let\document\subfiles@comment
   \let\enddocument\subfiles@endcomment
-}{% subfiles class not loaded
+}{%
   \RequirePackage{import}
   \def\subfiles@split#1{%
-    \edef\subfiles@filename{#1}%
-    \def\subfiles@dir{}%
-    \def\subfiles@base{}%
-    \def\subfiles@sep{}%
-    \expandafter\subfiles@split@\subfiles@filename/\@nil/%
-  }%
-  \def\subfiles@split@#1/{%
-    \def\tmp{#1}%
-    \ifx\tmp\@nnil
-      \let\subfiles@next\relax
-    \else
-      \edef\subfiles@dir{\subfiles@dir\subfiles@base\subfiles@sep}%
-      \def\subfiles@base{#1}%
-      \def\subfiles@sep{/}%
-      \let\subfiles@next\subfiles@split@
-    \fi
-    \subfiles@next
-  }%
+    \let\subfiles@filename@simple\filename@simple
+    \def\filename@simple##1.\\{\edef\filename@base{##1}}%
+    \filename@parse{#1}%
+    \let\filename@simple\subfiles@filename@simple
+  }
 }
 \newcommand\subfile{%
   \let\subfiles@loadfile\subimport
@@ -81,7 +68,7 @@
     \@ignoretrue
   }%
   \subfiles@split{#1}%
-  \subfiles@loadfile{\subfiles@dir}{\subfiles@base}%
+  \subfiles@loadfile{\filename@area}{\filename@base}%
   \endgroup
 }
 \def\subfiles@addimportpath#1{%
