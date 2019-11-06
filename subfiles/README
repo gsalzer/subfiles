@@ -12,4 +12,4 @@ subfiles.sty
 and put them somewhere on the search path of TeX.
 
 Documentation:
-Run 'pdflatex subfiles.dtx' to generate subfiles.pdf.
+Run 'pdflatex subfiles.dtx' twice to generate subfiles.pdf.
