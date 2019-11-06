@@ -494,7 +494,7 @@
 %
 % The main functionality of the two |\subfile| commands is implemented in |\subfiles@subfile|.
 % It redefines |\documentclass| and the |document| environment to do nothing but reverting these command to their original meaning and avoiding spurious spaces.
-% Returning |\documentclass| and |\document| to their original definition is important for being compatible with classes like |standalone| or packages like |bibentry|, which rely on this definition.
+% Reverting |\documentclass| and |\document| to their original definition is important for being compatible with classes like |standalone| or packages like |bibentry|, which rely on this definition.
 %
 %    \begin{macrocode}
 \newcommand\subfiles@subfile[1]{%
