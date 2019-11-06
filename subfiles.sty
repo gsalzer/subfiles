@@ -26,7 +26,7 @@
 %% and the derived files subfiles.sty and subfiles.pdf
 %% 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{subfiles}[2019/10/31 pre-v1.6 Multi-file projects (package)]
+\ProvidesPackage{subfiles}[2019/11/06 v1.6 Multi-file projects (package)]
 \DeclareOption*{\PackageWarning{\CurrentOption ignored}}
 \ProcessOptions
 \@ifclassloaded{subfiles}{%
@@ -34,7 +34,7 @@
   \let\subfiles@enddocument\enddocument
   \let\document\subfiles@comment
   \let\enddocument\subfiles@endcomment
-}{%
+}{% subfiles class not loaded, we typeset the main document
   \RequirePackage{import}
   \def\subfiles@split#1{%
     \let\subfiles@filename@simple\filename@simple
@@ -58,7 +58,7 @@
   \let\subfiles@enddocument\enddocument
   \renewcommand\documentclass[2][subfiles]{%
     \let\documentclass\subfiles@documentclass
-	\ignorespaces
+    \ignorespaces
   }%
   \renewenvironment{document}{%
     \let\document\subfiles@document
@@ -75,7 +75,12 @@
   \def\subfiles@filelist{}%
   \def\subfiles@sep{}%
   \@for\subfiles@filename:=#1\do{%
-    \edef\subfiles@filelist{\subfiles@filelist\subfiles@sep\import@path\subfiles@filename}%
+    \edef\subfiles@filelist{%
+      \subfiles@filelist
+      \subfiles@sep
+      \import@path
+      \subfiles@filename
+    }%
     \def\subfiles@sep{,}%
   }
 }
