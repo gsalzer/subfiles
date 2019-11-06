@@ -30,7 +30,7 @@
 \title{A Document Class and a Package\\for Handling Multi-File Projects}
 \date{2019/11/06 v1.6}
 \author{Federico Garcia, Gernot Salzer}
-
+\usepackage{hyperref}
 \begin{document}
 \maketitle
  \DocInput{\filename}
@@ -41,6 +41,7 @@
 %   The |subfiles| package allows authors to split a document into one main file and one and more subsidiary files (subfiles) akin to the |\input| command, with the added benefit of making the subfiles compilable by themselves.
 %   This is achieved by reusing the preamble of the main file also for the subfiles.
 % \end{abstract}
+% \tableofcontents
 % \section{Introduction}
 % The \LaTeX\ commands |\include| and |\input| allow the user to split the \TeX\ source of a document into several input files.
 % This is useful when creating documents with many chapters, but also for handling large tables, figures, and code samples, which require a considerable amount of trial-and-errors.
@@ -271,6 +272,26 @@
 %   |contents of subfile\end{document}|
 % \end{center}
 %
+% \section{Troubleshooting}
+%
+% Here are some hints that solve most problems.
+%
+% \begin{enumerate}
+% \item
+%   Make sure to use the most recent version of the |subfiles| package, available from CTAN\footnote{\url{https://ctan.org/pkg/subfiles}} and Github\footnote{\url{https://github.com/gsalzer/subfiles}}.
+% \item
+%   Make sure that |\usepackage{subfiles}| comes last in the preamble
+%   of the main document.
+% \item
+%   If some external program that cooperates with \TeX, like |bibtex| or |biber|, complains about not being able to find a file, locate the name of the file in the \LaTeX\ source and replace \meta{filename} by |\subfix{|\meta{filename}|}|.
+% \item
+%   Make sure that there is no stuff after |\end{document}|, neither in the main file nor in the subfiles.
+% \item
+%   If there is anything in the preambles of the subfiles, make sure that it is stuff admissible for both, the preamble and the document area.
+% \item
+%   If nothing of the above helps and you are stuck, ask the people on tex.stackexchange\footnote{\url{https://tex.stackexchange.com/}}.
+% \end{enumerate}
+% 
 % \section{Dependencies}
 %
 % The |subfiles| package requires the |verbatim| package, whose |comment| environment is used to ignore the text area of the main file when typesetting subfiles separately.
