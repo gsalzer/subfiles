@@ -26,10 +26,11 @@
 %% and the derived files subfiles.sty and subfiles.pdf
 %% 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{subfiles}[2019/11/06 v1.6 Multi-file projects (class)]
+\ProvidesClass{subfiles}[2020/02/14 v1.6 Multi-file projects (class)]
 \DeclareOption*{\typeout{Preamble taken from file `\CurrentOption'}%
     \let\preamble@file\CurrentOption}
 \ProcessOptions
+\let\@classoptionslist\relax
 \let\subfiles@documentclass\documentclass
 \let\documentclass\LoadClass\relax
 \RequirePackage{verbatim}

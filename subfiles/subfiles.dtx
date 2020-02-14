@@ -2,7 +2,7 @@
 %
 % subfiles - class and package for multi-file projects in LaTeX
 % Copyright 2002, 2012 Federico Garcia (feg8@pitt.edu, fedegarcia@hotmail.com)
-% Copyright 2018, 2019 Gernot Salzer (salzer@logic.at)
+% Copyright 2018-2020 Gernot Salzer (salzer@logic.at)
 %
 % This work may be distributed and/or modified under the
 % conditions of the LaTeX Project Public License, either version 1.3
@@ -17,18 +17,18 @@
 % The Current Maintainer of this work is Gernot Salzer.
 %
 % This work consists of the files subfiles.dtx and subfiles.ins
-% and the derived files subfiles.sty and subfiles.pdf
+% and the derived files subfiles.cls, subfiles.sty and subfiles.pdf
 %
 % -------------------------------------------
 %
 %<*driver>
 % \fi
-\ProvidesFile{subfiles.dtx}[2019/11/06 v1.6 Multi-file projects]
+\ProvidesFile{subfiles.dtx}[2020/02/14 v1.6 Multi-file projects]
 % \iffalse
 \documentclass{ltxdoc}
 \GetFileInfo{subfiles.dtx}
 \title{A Document Class and a Package\\for Handling Multi-File Projects}
-\date{2019/11/06 v1.6}
+\date{2020/02/14 v1.6}
 \author{Federico Garcia, Gernot Salzer}
 \usepackage{hyperref}
 \begin{document}
@@ -219,11 +219,11 @@
 %
 % Usually all definitions and packages required by the subfiles should go into the preamble of the main file.
 % There are some further locations, though, where one might consider adding definitions and text.
-% Put negatively, apparently irrelevant stuff at these locations may become unexpectedly visible in the document or causes errors.
+% Put negatively, apparently irrelevant stuff in these locations may become unexpectedly visible in the document or cause errors.
 %
 % \paragraph{Code after the end of the main document} is added to the preamble of the subfiles, but is ignored when typesetting the main file.
 % This happens because a subfile typeset by itself does not really take the preamble of the main file, but \emph{everything outside} of |\begin{document}| and |\end{document}|.
-% This has two consequences: \emph{a)}~the user can add some commands to be processed as part of the preamble only when the subfiles are typeset by themselves; but also \emph{b)}~the user has to be careful even \emph{after} |\end{document}| in the main file, for any syntax error there will ruin the \LaTeX ing of the subfile(s).
+% This has two consequences: \emph{a)}~the user can add some commands that are to be processed as part of the preamble only when the subfiles are typeset by themselves; but also \emph{b)}~the user has to be careful even \emph{after} |\end{document}| in the main file, for any syntax error there will ruin the \LaTeX ing of the subfile(s).
 % \bigskip
 %
 % Similarly, when typesetting the main document, the |\subfile| command does not really load the stuff within the |document| environment, but \emph{everything except} the three commands |\documentclass[...]{...}|, |\begin{document}|, and |\end{document}|.
@@ -287,7 +287,7 @@
 % \item
 %   Make sure that there is no stuff after |\end{document}|, neither in the main file nor in the subfiles.
 % \item
-%   If there is anything in the preambles of the subfiles, make sure that it is stuff admissible for both, the preamble and the document area.
+%   If there is anything in the preambles of the subfiles, make sure that it is admissible for both, the preamble and the document area.
 % \item
 %   If nothing of the above helps and you are stuck, ask the people on tex.stackexchange\footnote{\url{https://tex.stackexchange.com/}}.
 % \end{enumerate}
@@ -311,7 +311,7 @@
 %   \begin{itemize}
 %   \item Use of |import| package to handle directory hierarchies.
 %   \item |\ignorespaces| added to avoid spurious spaces.
-%   \item Incompatibility with commands removed that expect |\document| to be equal to |\@onlypreamble| after the preamble (thanks to Eric Domenjoud for analysing the problem).
+%   \item Incompatibility with commands removed that expect |\document| to be equal to |\@onlypreamble| after the preamble. Thanks to Eric Domenjoud for analysing the problem.
 %   \end{itemize}
 % \item[v1.4:] \mbox{}
 %   \begin{itemize}
@@ -330,6 +330,7 @@
 %   \item Support for sub-bibliographies with package |bibunits| dropped, in favor of |\subfix|.
 %   \item Command |\subfix| added.
 %   \item Incompatibility with |standalone| class removed.
+%   \item The options of the main class are now also processed when typesetting a subfile; before they were ignored. Thanks to J\'an Kl'uka for analysing the problem.
 %   \end{itemize}
 % \end{description}
 %
@@ -338,13 +339,17 @@
 %    \begin{macrocode}
 %<*class>
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{subfiles}[2019/11/06 v1.6 Multi-file projects (class)]
+\ProvidesClass{subfiles}[2020/02/14 v1.6 Multi-file projects (class)]
 \DeclareOption*{\typeout{Preamble taken from file `\CurrentOption'}%
     \let\preamble@file\CurrentOption}
 \ProcessOptions
 %    \end{macrocode}
+% After processing the option of the |subfiles| class, we reset |\@classoptionslist| such that the options in the main file will be processed.
 %
-% We start by saving the regular \LaTeX\ definition of |\documentclass|:
+%    \begin{macrocode}
+\let\@classoptionslist\relax
+%    \end{macrocode}
+% Then we save the original definition of |\documentclass| to be able to reset it later to this definition:
 % 
 %    \begin{macrocode}
 \let\subfiles@documentclass\documentclass
@@ -430,7 +435,7 @@
 %    \begin{macrocode}
 %<*package>
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{subfiles}[2019/11/06 v1.6 Multi-file projects (package)]
+\ProvidesPackage{subfiles}[2020/02/14 v1.6 Multi-file projects (package)]
 \DeclareOption*{\PackageWarning{\CurrentOption ignored}}
 \ProcessOptions
 %    \end{macrocode}

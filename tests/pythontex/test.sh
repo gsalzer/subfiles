@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PYTHONTEX=/usr/local/texlive/2018/texmf-dist/scripts/pythontex/pythontex.py
+PYTHONTEX=/usr/local/texlive/2019/texmf-dist/scripts/pythontex/pythontex.py
 
 if [ ! -d venv ]; then
    python3 -m venv venv
