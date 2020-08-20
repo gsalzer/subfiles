@@ -1,15 +1,21 @@
 #!/bin/bash
 
-pdflatex main
+if [ "$1" = "" ]; then
+   LATEX=pdflatex
+else
+   LATEX="$1"
+fi
+
+$LATEX main
 bibtex main
-pdflatex main
-pdflatex main
+$LATEX main
+$LATEX main
 
 cd sub
-pdflatex sub
+$LATEX sub
 bibtex sub
-pdflatex sub
-pdflatex sub
+$LATEX sub
+$LATEX sub
 
 cd ..
 find . -name '*.pdf' -exec evince '{}' \;

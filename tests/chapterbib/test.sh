@@ -1,8 +1,8 @@
 #!/bin/bash
 
 pdflatex main
-bibtex chapter1
-bibtex chapter2
+bibtex chapter1/chapter1
+bibtex chapter2/chapter2
 pdflatex main
 pdflatex main
 

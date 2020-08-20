@@ -1,22 +1,28 @@
 #!/bin/bash
 
-pdflatex main
+if [ "$1" = "" ]; then
+   LATEX=pdflatex
+else
+   LATEX="$1"
+fi
+
+$LATEX main
 biber main
-pdflatex main
-pdflatex main
+$LATEX main
+$LATEX main
 
 cd chapter1
-pdflatex chapter1
+$LATEX chapter1
 biber chapter1
-pdflatex chapter1
-pdflatex chapter1
+$LATEX chapter1
+$LATEX chapter1
 cd ..
 
 cd chapter2
-pdflatex chapter2
+$LATEX chapter2
 biber chapter2
-pdflatex chapter2
-pdflatex chapter2
+$LATEX chapter2
+$LATEX chapter2
 cd ..
 
 find . -name '*.pdf' -exec evince '{}' \;

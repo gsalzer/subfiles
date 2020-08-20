@@ -8,7 +8,7 @@
 %% 
 %% This is a generated file.
 %% 
-%% Copyright 2002, 2012 Federico Garcia; 2018, 2019 Gernot Salzer
+%% Copyright 2002, 2012 Federico Garcia; 2018-2020 Gernot Salzer
 %% 
 %% This work may be distributed and/or modified under the
 %% conditions of the LaTeX Project Public License, either version 1.3
@@ -26,16 +26,13 @@
 %% and the derived files subfiles.sty and subfiles.pdf
 %% 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{subfiles}[2020/02/14 v1.6 Multi-file projects (class)]
+\ProvidesClass{subfiles}[2020/08/20 v2.0-pre Multi-file projects (class)]
 \DeclareOption*{\typeout{Preamble taken from file `\CurrentOption'}%
     \let\preamble@file\CurrentOption}
 \ProcessOptions
 \let\@classoptionslist\relax
 \let\subfiles@documentclass\documentclass
-\let\documentclass\LoadClass\relax
-\RequirePackage{verbatim}
-\let\subfiles@comment\comment
-\let\subfiles@endcomment\endcomment
+\let\documentclass\LoadClass
 \RequirePackage{import}
 \def\subfiles@split#1{%
   \let\subfiles@filename@simple\filename@simple
@@ -45,14 +42,6 @@
 }
 \subfiles@split{\preamble@file}
 \subimport{\filename@area}{\filename@base}
-{\catcode`\@=11
-\global\let\document\subfiles@document
-\global\let\enddocument\subfiles@enddocument
-\global\let\documentclass\subfiles@documentclass
-\global\let\subfiles@document\undefined
-\global\let\subfiles@enddocument\undefined
-\global\let\subfiles@documentclass\undefined
-}
 \endinput
 %%
 %% End of file `subfiles.cls'.

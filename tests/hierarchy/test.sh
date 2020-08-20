@@ -1,31 +1,37 @@
 #!/bin/bash
 
-pdflatex main
-pdflatex main
+if [ "$1" = "" ]; then
+   LATEX=pdflatex
+else
+   LATEX="$1"
+fi
+
+$LATEX main
+$LATEX main
 
 cd A
-pdflatex sub
-pdflatex sub
+$LATEX sub
+$LATEX sub
 
 cd a
-pdflatex ssub
-pdflatex ssub
+$LATEX ssub
+$LATEX ssub
 
 cd 0
-pdflatex sssub
-pdflatex sssub
+$LATEX sssub
+$LATEX sssub
 
 cd ../1
-pdflatex sssub
-pdflatex sssub
+$LATEX sssub
+$LATEX sssub
 
 cd ../../b
-pdflatex ssub
-pdflatex ssub
+$LATEX ssub
+$LATEX ssub
 
 cd ../../B
-pdflatex sub
-pdflatex sub
+$LATEX sub
+$LATEX sub
 
 cd ..
 find . -name '*.pdf' -exec evince '{}' \;

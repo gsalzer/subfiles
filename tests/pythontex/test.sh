@@ -1,6 +1,12 @@
 #!/bin/bash
+  
+if [ "$1" = "" ]; then
+   LATEX=pdflatex
+else
+   LATEX="$1"
+fi
 
-PYTHONTEX=/usr/local/texlive/2019/texmf-dist/scripts/pythontex/pythontex.py
+PYTHONTEX=/usr/local/texlive/2020/texmf-dist/scripts/pythontex/pythontex.py
 
 if [ ! -d venv ]; then
    python3 -m venv venv
@@ -8,12 +14,12 @@ if [ ! -d venv ]; then
    pip install pygments
 fi
 
-pdflatex main
+$LATEX main
 $PYTHONTEX main
-pdflatex main
+$LATEX main
 
-pdflatex sub
+$LATEX sub
 $PYTHONTEX sub
-pdflatex sub
+$LATEX sub
 
 for i in *.pdf; do evince $i; done
