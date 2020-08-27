@@ -26,15 +26,51 @@
 %% and the derived files subfiles.sty and subfiles.pdf
 %% 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{subfiles}[2020/08/20 v2.0-pre Multi-file projects (package)]
-\DeclareOption*{\PackageWarning{\CurrentOption ignored}}
-\ProcessOptions
+\ProvidesPackage{subfiles}[2020/08/27 v2.0-pre Multi-file projects (package)]
+
+\DeclareOption{CommonSubpreamble}{%
+  \let\subfiles@handleMain\subfiles@skipDocument
+}
+\def\subfiles@skipDocument{%  
+  \let\subfiles@skiplinescont\ignorespaces
+  \let\subfiles@skiplinesend\subfiles@ENDDOCUMENT
+  \subfiles@skiplines
+}%
+\let\subfiles@handleMain\endinput
+
+\DeclareOption{DualUseSubpreamble}{%
+  \let\subfiles@handleSubpreamble\subfiles@skipDocumentclass
+}
+\def\subfiles@skipDocumentclass{%
+  \renewcommand\documentclass[2][]{%
+    \let\documentclass\subfiles@documentclass
+    \ignorespaces
+  }%
+}%
+\def\subfiles@skipPreamble{%
+  \def\documentclass{%
+    \let\documentclass\subfiles@documentclass
+    \def\subfiles@skiplinescont{\begin{document}}%
+    \let\subfiles@skiplinesend\subfiles@BEGINDOCUMENT
+    \subfiles@skiplines
+  }%
+}
+\let\subfiles@handleSubpreamble\subfiles@skipPreamble
+
+\DeclareOption{TextAfterSubdocument}{%
+  \let\subfiles@handleTextAfterSubdocument\relax
+}
+\let\subfiles@handleTextAfterSubdocument\endinput
+
+\DeclareOption*{\PackageWarning{subfiles}{Option '\CurrentOption' ignored}}
+\ProcessOptions\relax
 
 {\escapechar=-1\relax
  \xdef\subfiles@ENDDOCUMENT{\string\\end\string\{document\string\}}%
  \xdef\subfiles@BEGINDOCUMENT{\string\\begin\string\{document\string\}}%
 }
 \def\subfiles@DOCUMENT{document}
+
 \def\subfiles@skiplines{%
   \begingroup
     \let\do\@makeother\dospecials
@@ -49,20 +85,18 @@
 }
 
 \@ifclassloaded{subfiles}{%
-  \let\documentclass\subfiles@documentclass
   \let\subfiles@begin\begin
   \def\begin#1{%
     \def\subfiles@tmp{#1}%
     \ifx\subfiles@tmp\subfiles@DOCUMENT
-      \def\subfiles@skiplinescont{\let\begin\subfiles@begin}%
-      \let\subfiles@skiplinesend\subfiles@ENDDOCUMENT
-      \let\subfiles@tmp\subfiles@skiplines
+      \let\begin\subfiles@begin
+      \let\subfiles@tmp\subfiles@handleMain
     \else
       \def\subfiles@tmp{\subfiles@begin{#1}}%
     \fi
     \subfiles@tmp
   }%
-}{% subfiles class not loaded, we typeset the main document
+}{% class subfiles not loaded, we typeset the main document
   \RequirePackage{import}
   \def\subfiles@split#1{%
     \let\subfiles@filename@simple\filename@simple
@@ -83,20 +117,15 @@
   \begingroup
   \let\subfiles@documentclass\documentclass
   \let\subfiles@document\document
-  \def\documentclass{%
-    \def\subfiles@skiplinescont{%
-      \let\documentclass\subfiles@documentclass
-      \begin{document}%
-    }%
-    \let\subfiles@skiplinesend\subfiles@BEGINDOCUMENT
-    \subfiles@skiplines
-  }%
+  \let\subfiles@enddocument\enddocument
+  \subfiles@handleSubpreamble
   \renewenvironment{document}{%
     \let\document\subfiles@document
     \ignorespaces
   }{%
-    \endinput
+    \let\enddocument\subfiles@enddocument
     \@ignoretrue
+    \subfiles@handleTextAfterSubdocument
   }%
   \subfiles@split{#1}%
   \subfiles@loadfile{\filename@area}{\filename@base}%

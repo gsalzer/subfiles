@@ -26,13 +26,13 @@
 %% and the derived files subfiles.sty and subfiles.pdf
 %% 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{subfiles}[2020/08/20 v2.0-pre Multi-file projects (class)]
+\ProvidesClass{subfiles}[2020/08/27 v2.0-pre Multi-file projects (class)]
 \DeclareOption*{\typeout{Preamble taken from file `\CurrentOption'}%
     \let\preamble@file\CurrentOption}
 \ProcessOptions
 \let\@classoptionslist\relax
 \let\subfiles@documentclass\documentclass
-\let\documentclass\LoadClass
+\def\documentclass{\let\documentclass\subfiles@documentclass\LoadClass}
 \RequirePackage{import}
 \def\subfiles@split#1{%
   \let\subfiles@filename@simple\filename@simple
