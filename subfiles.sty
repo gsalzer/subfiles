@@ -26,27 +26,23 @@
 %% and the derived files subfiles.sty and subfiles.pdf
 %% 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{subfiles}[2020/08/27 v2.0-pre Multi-file projects (package)]
-
-\DeclareOption{CommonSubpreamble}{%
-  \let\subfiles@handleMain\subfiles@skipDocument
+\ProvidesPackage{subfiles}[2020/09/07 v2.0 Multi-file projects (package)]
+\def\subfiles@DOCUMENT{document}
+{\escapechar=-1\relax
+ \xdef\subfiles@BEGINDOCUMENT{\string\\begin\string\{document\string\}}%
+ \xdef\subfiles@ENDDOCUMENT{\string\\end\string\{document\string\}}%
 }
-\def\subfiles@skipDocument{%  
+\def\subfiles@skipDocument{%
   \let\subfiles@skiplinescont\ignorespaces
   \let\subfiles@skiplinesend\subfiles@ENDDOCUMENT
   \subfiles@skiplines
-}%
-\let\subfiles@handleMain\endinput
-
-\DeclareOption{DualUseSubpreamble}{%
-  \let\subfiles@handleSubpreamble\subfiles@skipDocumentclass
 }
 \def\subfiles@skipDocumentclass{%
   \renewcommand\documentclass[2][]{%
     \let\documentclass\subfiles@documentclass
     \ignorespaces
   }%
-}%
+}
 \def\subfiles@skipPreamble{%
   \def\documentclass{%
     \let\documentclass\subfiles@documentclass
@@ -55,22 +51,16 @@
     \subfiles@skiplines
   }%
 }
+\let\subfiles@handleMain\endinput
 \let\subfiles@handleSubpreamble\subfiles@skipPreamble
-
-\DeclareOption{TextAfterSubdocument}{%
+\let\subfiles@handleTextAfterSubdocument\endinput
+\DeclareOption{v1}{%
+  \let\subfiles@handleMain\subfiles@skipDocument
+  \let\subfiles@handleSubpreamble\subfiles@skipDocumentclass
   \let\subfiles@handleTextAfterSubdocument\relax
 }
-\let\subfiles@handleTextAfterSubdocument\endinput
-
 \DeclareOption*{\PackageWarning{subfiles}{Option '\CurrentOption' ignored}}
 \ProcessOptions\relax
-
-{\escapechar=-1\relax
- \xdef\subfiles@ENDDOCUMENT{\string\\end\string\{document\string\}}%
- \xdef\subfiles@BEGINDOCUMENT{\string\\begin\string\{document\string\}}%
-}
-\def\subfiles@DOCUMENT{document}
-
 \def\subfiles@skiplines{%
   \begingroup
     \let\do\@makeother\dospecials
@@ -83,28 +73,13 @@
       \else\let\subfiles@tmp\subfiles@skipline
       \fi \subfiles@tmp}
 }
-
-\@ifclassloaded{subfiles}{%
-  \let\subfiles@begin\begin
-  \def\begin#1{%
-    \def\subfiles@tmp{#1}%
-    \ifx\subfiles@tmp\subfiles@DOCUMENT
-      \let\begin\subfiles@begin
-      \let\subfiles@tmp\subfiles@handleMain
-    \else
-      \def\subfiles@tmp{\subfiles@begin{#1}}%
-    \fi
-    \subfiles@tmp
-  }%
-}{% class subfiles not loaded, we typeset the main document
-  \RequirePackage{import}
-  \def\subfiles@split#1{%
-    \let\subfiles@filename@simple\filename@simple
-    \def\filename@simple##1.\\{\edef\filename@base{##1}}%
-    \filename@parse{#1}%
-    \let\filename@simple\subfiles@filename@simple
-  }%
-}
+\RequirePackage{import}
+\def\subfiles@split#1{%
+  \let\subfiles@filename@simple\filename@simple
+  \def\filename@simple##1.\\{\edef\filename@base{##1}}%
+  \filename@parse{#1}%
+  \let\filename@simple\subfiles@filename@simple
+}%
 \newcommand\subfile{%
   \let\subfiles@loadfile\subimport
   \subfiles@subfile
@@ -131,25 +106,54 @@
   \subfiles@loadfile{\filename@area}{\filename@base}%
   \endgroup
 }
-\def\subfiles@addimportpath#1{%
-  \def\subfiles@filelist{}%
+\def\subfix#1{\import@path#1}
+\def\subfiles@fixfilelist#1{%
+  \def\subfiles@list{}%
   \def\subfiles@sep{}%
-  \@for\subfiles@filename:=#1\do{%
-    \edef\subfiles@filelist{%
-      \subfiles@filelist
-      \subfiles@sep
-      \import@path
-      \subfiles@filename
-    }%
+  \@for\subfiles@tmp:=#1\do{%
+    \edef\subfiles@list{\subfiles@list\subfiles@sep\subfix{\subfiles@tmp}}%
     \def\subfiles@sep{,}%
+  }%
+}
+\def\subfiles@fixpathlist#1{%
+  \def\subfiles@list{}%
+  \@tfor\subfiles@tmp:=#1\do{%
+    \edef\subfiles@list{\subfiles@list{\subfix\subfiles@tmp}}%
   }%
 }
 \let\subfiles@bibliography\bibliography
 \renewcommand\bibliography[1]{%
-  \subfiles@addimportpath{#1}%
-  \expandafter\subfiles@bibliography\expandafter{\subfiles@filelist}%
+  \subfiles@fixfilelist{#1}%
+  \expandafter\subfiles@bibliography\expandafter{\subfiles@list}%
 }
-\def\subfix#1{\import@path#1}
+\@ifpackageloaded{graphics}{%
+  \let\subfiles@graphicspath\graphicspath
+  \renewcommand\graphicspath[1]{%
+    \subfiles@fixpathlist{#1}%
+    \edef\subfiles@list{{\subfix{}}\subfiles@list}%
+    \expandafter\subfiles@graphicspath\expandafter{\subfiles@list}%
+  }%
+}{}
+\newcommand\ifSubfilesClassLoaded{%
+  \expandafter\ifx\csname ver@subfiles.cls\endcsname\relax
+    \expandafter\@secondoftwo
+  \else
+    \expandafter\@firstoftwo
+  \fi
+}
+\ifSubfilesClassLoaded{%
+  \let\subfiles@begin\begin
+  \def\begin#1{%
+    \def\subfiles@tmp{#1}%
+    \ifx\subfiles@tmp\subfiles@DOCUMENT
+      \let\begin\subfiles@begin
+      \let\subfiles@tmp\subfiles@handleMain
+    \else
+      \def\subfiles@tmp{\subfiles@begin{#1}}%
+    \fi
+    \subfiles@tmp
+  }%
+}{}
 \endinput
 %%
 %% End of file `subfiles.sty'.

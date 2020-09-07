@@ -7,5 +7,6 @@ else
 fi
 
 $LATEX main
+$LATEX main-v1
 
 for i in *.pdf; do evince $i; done

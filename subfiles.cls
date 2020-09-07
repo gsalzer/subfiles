@@ -26,22 +26,26 @@
 %% and the derived files subfiles.sty and subfiles.pdf
 %% 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{subfiles}[2020/08/27 v2.0-pre Multi-file projects (class)]
-\DeclareOption*{\typeout{Preamble taken from file `\CurrentOption'}%
-    \let\preamble@file\CurrentOption}
+\ProvidesClass{subfiles}[2020/09/07 v2.0 Multi-file projects (class)]
+\DeclareOption*{%
+  \typeout{Preamble taken from file `\CurrentOption'}%
+  \let\preamble@file\CurrentOption
+}
 \ProcessOptions
 \let\@classoptionslist\relax
-\let\subfiles@documentclass\documentclass
-\def\documentclass{\let\documentclass\subfiles@documentclass\LoadClass}
 \RequirePackage{import}
-\def\subfiles@split#1{%
-  \let\subfiles@filename@simple\filename@simple
-  \def\filename@simple##1.\\{\edef\filename@base{##1}}%
-  \filename@parse{#1}%
-  \let\filename@simple\subfiles@filename@simple
+\let\subfiles@documentclass\documentclass
+\def\documentclass{%
+  \let\documentclass\subfiles@documentclass
+  \LoadClass
 }
-\subfiles@split{\preamble@file}
-\subimport{\filename@area}{\filename@base}
+\filename@parse{\preamble@file}
+\edef\import@path{\filename@area}
+\edef\input@path{{\filename@area}}
+\input{\preamble@file}
+{\makeatletter
+  \gdef\import@path{}
+}
 \endinput
 %%
 %% End of file `subfiles.cls'.
