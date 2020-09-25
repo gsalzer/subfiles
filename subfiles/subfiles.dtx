@@ -194,6 +194,17 @@
 %   \end{tabular}
 % \end{center}
 %
+% \subsection{Referencing between subfiles}
+% When working with multiple subfiles under one main file, one often wants to refer in subfile |A.tex| to labels in subfile |B.tex|. To realize that, include
+% in the preamble of the main file: 
+% \begin{center}
+%   |\usepackage{xr}|
+% \end{center}
+% Then, include in the preambles of |A.tex| and |B.tex|:
+% \begin{center}
+%  |\ifSubfilesClassLoaded{\externaldocument{|\meta{main\_file\_name}|}{}|
+% \end{center}
+%
 % \subsection{Unusual locations for placing definitions and text}
 %
 % Starting with version 2.0, the |subfiles| package treats sub-preambles and text after |\end{document}| as one would expect:
