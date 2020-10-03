@@ -1,0 +1,17 @@
+\documentclass{article}
+\usepackage{xr}
+\usepackage{subfiles}
+\externaldocument[main-]{\subfix{main}}
+\begin{document}
+
+Some text before loading a subfile.
+
+\subfile{sub1/sub}
+
+Some text after loading a subfile, and before loading another one.
+
+\subfile{sub2/sub}
+
+Some final versions.
+
+\end{document}
