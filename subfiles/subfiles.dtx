@@ -23,12 +23,12 @@
 %
 %<*driver>
 % \fi
-\ProvidesFile{subfiles.dtx}[2020/09/07 v2.0 Multi-file projects]
+\ProvidesFile{subfiles.dtx}[2020/10/03 v2.0 Multi-file projects]
 % \iffalse
 \documentclass{ltxdoc}
 \GetFileInfo{subfiles.dtx}
 \title{A Document Class and a Package\\for Handling Multi-File Projects}
-\date{2020/09/07 v2.0}
+\date{2020/10/03 v2.0}
 \author{Federico Garcia, Gernot Salzer}
 \usepackage{hyperref}
 \begin{document}
@@ -194,32 +194,21 @@
 %   \end{tabular}
 % \end{center}
 %
-% \subsection{Referencing between subfiles}
-% When working with multiple subfiles under one main file, one often wants to refer in subfile |A.tex| to labels in subfile |B.tex|. To realize that, include
-% in the preamble of the main file: 
-% \begin{center}
-%   |\usepackage{xr}|
-% \end{center}
-% Then, include in the preambles of |A.tex| and |B.tex|:
-% \begin{center}
-%  |\ifSubfilesClassLoaded{\externaldocument{|\meta{main\_file\_name}|}{}|
-% \end{center}
-%
 % \subsection{Unusual locations for placing definitions and text}
 %
 % Starting with version 2.0, the |subfiles| package treats sub-preambles and text after |\end{document}| as one would expect:
 % The preamble of subfiles is skipped when loaded with |\subfile|, and everything after |\end{document}| is ignored.
 % In most cases this is what you want. 
 %
-% \DescribeMacro{v1}
-% For reasons of compatibility, the option |v1| restores the behaviour of older versons:
+% \DescribeMacro{[v1]}
+% For reasons of compatibility, the option |v1| restores the behaviour of older versions:
 % \begin{center}
 %   |\usepackage[v1]{subfiles}|
 % \end{center}
 % This will have three effects.
 %
 % \emph{Code after the end of the main document} is added to the preamble of the subfiles, but is ignored when typesetting the main file.
-% Here one can add commands that are to be processed as part of the preamble when the subfiles are typeset on their one.
+% Here, one can add commands that are to be processed as part of the preamble when the subfiles are typeset on their one.
 % But this also means that any syntax error after |\end{document}| will ruin the \LaTeX ing of the subfile(s).
 %
 % \emph{Code in the preamble of a subfile} is processed as part of the text when typesetting the main file, but as part of the preamble when typesetting the subfile.
@@ -290,6 +279,25 @@
 % \end{center}
 % Then each of the three files can be typeset individually in its respective directory, where \LaTeX\ is able to locate all included text files and images.
 %
+% \subsection{Cross-referencing between subfiles}
+% When working with multiple subfiles under a main file, say |main.tex|, one may want to refer in subfile |A.tex| to labels in subfile |B.tex|. To make this work, load the package |xr| in the preamble of the main file and add an |\externaldocument| command after loading the |subfiles| package:
+% \begin{center}
+%   \begin{tabular}{l}
+%     |\usepackage{xr}| \\
+%     |\usepackage{subfiles}| \\
+%     |\externaldocument[M-]{\subfix{main}}|  
+%   \end{tabular}
+% \end{center}
+% In the |\externaldocument| command, |main| is the name of the main document.
+% Moreover, |M-| is an arbitrary sequence of characters that is added as prefix to the labels.
+% The |\subfix| command is only needed if the subfiles are not in the same directory as the main file, but it doesn't hurt if you add it in any case.
+%
+% To cross-reference between documents, add labels as usual.
+% Suppose you have |\label{mylabel}| in any of the files.
+% Then you can use |\ref{M-mylabel}| and  |\pageref{M-mylabel}| to obtain the (page) number that the label refers to in the main document.
+%
+% Note that you first have to compile |main.tex|.
+% This generates |main.aux|, which then can be loaded by the subfiles to provide the information for the labels prefixed with |M-|.
 %
 % \subsection{Avoiding extra spaces}
 %
@@ -392,6 +400,8 @@
 %     Thanks to Github user |June-6th| for reporting the issue.
 %   \item Problem with the search path for images resolved.
 %     Thanks to Github user |maxnick| for reporting the issue.
+%   \item Section about cross-referencing added.
+%     Thanks to Github user |ndvanforeest| for the input.
 %   \end{itemize}
 % \end{description}
 %
