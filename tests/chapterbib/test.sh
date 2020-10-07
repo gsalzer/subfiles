@@ -1,23 +1,15 @@
 #!/bin/bash
 
-pdflatex main
-bibtex chapter1/chapter1
-bibtex chapter2/chapter2
-pdflatex main
-pdflatex main
+source ../functions.sh
+
+run_lbll main chapter1/chapter1 chapter2/chapter2
 
 cd chapter1
-pdflatex chapter1
-bibtex chapter1
-pdflatex chapter1
-pdflatex chapter1
+run_lbll chapter1 chapter1
 cd ..
 
 cd chapter2
-pdflatex chapter2
-bibtex chapter2
-pdflatex chapter2
-pdflatex chapter2
+run_lbll chapter2 chapter2
 cd ..
 
 find . -name '*.pdf' -exec evince '{}' \;

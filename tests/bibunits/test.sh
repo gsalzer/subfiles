@@ -1,29 +1,15 @@
 #!/bin/bash
 
-if [ "$1" = "" ]; then
-   LATEX=pdflatex
-else
-   LATEX="$1"
-fi
+source ../functions.sh
 
-$LATEX main
-bibtex bu1
-bibtex bu2
-$LATEX main
-$LATEX main
+run_lbll main bu1 bu2
 
 cd chapter1
-$LATEX chapter1
-bibtex bu1
-$LATEX chapter1
-$LATEX chapter1
+run_lbll chapter1 bu1
 cd ..
 
 cd chapter2
-$LATEX chapter2
-bibtex bu1
-$LATEX chapter2
-$LATEX chapter2
+run_lbll chapter2 bu1
 cd ..
 
 find . -name '*.pdf' -exec evince '{}' \;

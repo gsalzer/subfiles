@@ -1,38 +1,21 @@
 #!/bin/bash
 
-if [ "$1" = "" ]; then
-   LATEX=pdflatex
-else
-   LATEX="$1"
-fi
+source ../functions.sh
 
-$LATEX main
-$LATEX main
-
+run_lbll main
 cd A
-$LATEX sub
-$LATEX sub
-
+run_lbll sub
 cd a
-$LATEX ssub
-$LATEX ssub
-
+run_lbll ssub
 cd 0
-$LATEX sssub
-$LATEX sssub
-
+run_lbll sssub
 cd ../1
-$LATEX sssub
-$LATEX sssub
-
+run_lbll sssub
 cd ../../b
-$LATEX ssub
-$LATEX ssub
-
+run_lbll ssub
 cd ../../B
-$LATEX sub
-$LATEX sub
-
+run_lbll sub
 cd ..
+
 find . -name '*.pdf' -exec evince '{}' \;
 

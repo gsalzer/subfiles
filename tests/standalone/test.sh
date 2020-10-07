@@ -1,18 +1,12 @@
 #!/bin/bash
   
-if [ "$1" = "" ]; then
-   LATEX=pdflatex
-else
-   LATEX="$1"
-fi
+source ../functions.sh
 
-$LATEX main
-
+run_latex main
 cd include
-$LATEX chapter1
-
+run_latex chapter1
 cd figure
-$LATEX fig
+run_latex fig
 cd ../..
 
 find . -name '*.pdf' -exec evince '{}' \;

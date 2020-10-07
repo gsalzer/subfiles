@@ -1,5 +1,5 @@
 \documentclass{article}
-\usepackage{subfiles}
+\usepackage[\OPTIONS]{subfiles}
 \parindent0mm
 \begin{document}
 The \verb|\subfile| command behaves like the \verb|\input| command:
@@ -25,9 +25,9 @@ Now the extra space in the subfile has been removed.
 \subfile{s3}\subfile{s3}
 \bigskip
 
-Now there are extra lines after \verb|\end{document}| in the subfile,
-which are ignored as of version 2.0 and therefore should not introduce
-line breaks.
+Now there are extra lines after \verb|\end{document}| in the subfile.
+In version 2.0 and later, they are ignored and should not introduce line breaks.
+With the \texttt{v1} option, however, there should be linebreaks.
 
 \subfile{s4}
 \subfile{s4}\subfile{s4}

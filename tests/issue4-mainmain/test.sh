@@ -1,15 +1,12 @@
 #/bin/sh
-  
-if [ "$1" = "" ]; then
-   LATEX=pdflatex
-else
-   LATEX="$1"
-fi
 
-$LATEX main
+source ../functions.sh
+
+run_latex main
 cd dir1
-$LATEX main
+run_latex main
 cd dir2
-$LATEX main
+run_latex main
 cd ../..
+
 find . -name '*.pdf' -exec evince '{}' \;

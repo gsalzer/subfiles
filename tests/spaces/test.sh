@@ -1,12 +1,7 @@
 #/bin/sh
   
-if [ "$1" = "" ]; then
-   LATEX=pdflatex
-else
-   LATEX="$1"
-fi
+source ../functions.sh
 
-$LATEX main
-$LATEX main-v1
+run_latex main
 
-for i in *.pdf; do evince $i; done
+find . -name '*.pdf' -exec evince '{}' \;
