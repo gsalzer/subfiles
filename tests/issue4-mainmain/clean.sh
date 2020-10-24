@@ -1,3 +1,3 @@
 #/bin/sh
 
-rm {,dir1/{,/dir2/}}*.{aux,log,pdf}
+rm -rf {,dir1/{,/dir2/}}*.{aux,log,pdf}

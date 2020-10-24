@@ -1,3 +1,3 @@
 #/bin/sh
 
-rm {,src/subfiles/}*.{aux,log,pdf}
+rm -f {,src/subfiles/}*.{aux,log,pdf}

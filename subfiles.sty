@@ -26,53 +26,88 @@
 %% and the derived files subfiles.sty and subfiles.pdf
 %% 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{subfiles}[2020/09/07 v2.0 Multi-file projects (package)]
+\ProvidesPackage{subfiles}[2020/10/24 v2.1 Multi-file projects (package)]
 \def\subfiles@DOCUMENT{document}
-{\escapechar=-1\relax
- \xdef\subfiles@BEGINDOCUMENT{\string\\begin\string\{document\string\}}%
- \xdef\subfiles@ENDDOCUMENT{\string\\end\string\{document\string\}}%
+\def\ifDOCUMENT#1#2#3{%
+  \def\subfiles@tmp{#1}%
+  \ifx\subfiles@tmp\subfiles@DOCUMENT
+    \def\subfiles@tmp{#2}%
+  \else
+    \def\subfiles@tmp{#3}%
+  \fi
+  \subfiles@tmp    
 }
-\def\subfiles@skipDocument{%
-  \let\subfiles@skiplinescont\ignorespaces
-  \let\subfiles@skiplinesend\subfiles@ENDDOCUMENT
-  \subfiles@skiplines
+\def\subfiles@newDocument#1#2#3{%
+  \def#1##1{\ifDOCUMENT{##1}{#2}{#3{##1}}}%
 }
-\def\subfiles@skipDocumentclass{%
-  \renewcommand\documentclass[2][]{%
+\def\subfiles@newSkipToDocument#1#2#3{%
+  \long\def#2##1#1##2{\ifDOCUMENT{##2}{#3}{#2}}%
+}
+\def\subfiles@handleMainDocumentVi{%
+  \let\subfiles@begin\begin
+  \subfiles@newDocument\begin{%
+    \let\begin\subfiles@begin
+    \subfiles@newSkipToDocument\end\subfiles@skipToEndDocument{%
+      \ignorespaces
+    }%
+    \subfiles@skipToEndDocument
+  }\subfiles@begin
+}
+\def\subfiles@handleMainDocumentVii{%
+  \let\subfiles@begin\begin
+  \subfiles@newDocument\begin{%
+    \let\begin\subfiles@begin
+    \endinput
+    \ignorespaces
+  }\subfiles@begin
+}
+\def\subfiles@saveEnd{%
+  \ifcsname subfiles@end\endcsname
+  \else
+    \let\subfiles@end\end
+  \fi
+}
+\def\subfiles@handleSubDocumentVi{%
+  \let\subfiles@documentclass\documentclass
+  \def\documentclass{%
+    \@ifnextchar[\subfiles@documentclass@{\subfiles@documentclass@[]}%
+  }%
+  \def\subfiles@documentclass@[##1]##2{%
     \let\documentclass\subfiles@documentclass
     \ignorespaces
   }%
+  \let\subfiles@begin\begin
+  \subfiles@newDocument\begin{%
+    \let\begin\subfiles@begin
+    \subfiles@saveEnd
+    \subfiles@newDocument\end{%
+      \let\end\subfiles@end
+      \ignorespaces
+    }\subfiles@end
+    \ignorespaces
+  }\subfiles@begin
 }
-\def\subfiles@skipPreamble{%
-  \def\documentclass{%
+\def\subfiles@handleSubDocumentVii{%
+  \let\subfiles@documentclass\documentclass
+  \subfiles@newSkipToDocument\begin\documentclass{%
     \let\documentclass\subfiles@documentclass
-    \def\subfiles@skiplinescont{\begin{document}}%
-    \let\subfiles@skiplinesend\subfiles@BEGINDOCUMENT
-    \subfiles@skiplines
+    \subfiles@saveEnd
+    \subfiles@newDocument\end{%
+      \let\end\subfiles@end
+      \endinput
+      \ignorespaces
+    }\subfiles@end
+    \ignorespaces
   }%
 }
-\let\subfiles@handleMain\endinput
-\let\subfiles@handleSubpreamble\subfiles@skipPreamble
-\let\subfiles@handleTextAfterSubdocument\endinput
+\let\subfiles@handleMainDocument\subfiles@handleMainDocumentVii
+\let\subfiles@handleSubDocument\subfiles@handleSubDocumentVii
 \DeclareOption{v1}{%
-  \let\subfiles@handleMain\subfiles@skipDocument
-  \let\subfiles@handleSubpreamble\subfiles@skipDocumentclass
-  \let\subfiles@handleTextAfterSubdocument\relax
+  \let\subfiles@handleMainDocument\subfiles@handleMainDocumentVi
+  \let\subfiles@handleSubDocument\subfiles@handleSubDocumentVi
 }
 \DeclareOption*{\PackageWarning{subfiles}{Option '\CurrentOption' ignored}}
 \ProcessOptions\relax
-\def\subfiles@skiplines{%
-  \begingroup
-    \let\do\@makeother\dospecials
-    \@makeother\^^L%
-    \endlinechar`\^^M\relax \catcode`\^^M=12\relax \subfiles@skipline}
-{\catcode`\^^M=12 \endlinechar=-1 %
- \gdef\subfiles@skipline#1^^M{\def\subfiles@tmp{#1}%
-      \ifx\subfiles@tmp\subfiles@skiplinesend
-          \def\subfiles@tmp{\endgroup\subfiles@skiplinescont}%
-      \else\let\subfiles@tmp\subfiles@skipline
-      \fi \subfiles@tmp}
-}
 \RequirePackage{import}
 \def\subfiles@split#1{%
   \let\subfiles@filename@simple\filename@simple
@@ -88,20 +123,9 @@
   \let\subfiles@loadfile\subincludefrom
   \subfiles@subfile
 }
-\newcommand\subfiles@subfile[1]{%
+\def\subfiles@subfile#1{%
   \begingroup
-  \let\subfiles@documentclass\documentclass
-  \let\subfiles@document\document
-  \let\subfiles@enddocument\enddocument
-  \subfiles@handleSubpreamble
-  \renewenvironment{document}{%
-    \let\document\subfiles@document
-    \ignorespaces
-  }{%
-    \let\enddocument\subfiles@enddocument
-    \@ignoretrue
-    \subfiles@handleTextAfterSubdocument
-  }%
+  \subfiles@handleSubDocument
   \subfiles@split{#1}%
   \subfiles@loadfile{\filename@area}{\filename@base}%
   \endgroup
@@ -122,16 +146,54 @@
   }%
 }
 \let\subfiles@bibliography\bibliography
-\renewcommand\bibliography[1]{%
+\def\bibliography#1{%
   \subfiles@fixfilelist{#1}%
   \expandafter\subfiles@bibliography\expandafter{\subfiles@list}%
 }
 \@ifpackageloaded{graphics}{%
   \let\subfiles@graphicspath\graphicspath
-  \renewcommand\graphicspath[1]{%
+  \def\graphicspath#1{%
     \subfiles@fixpathlist{#1}%
     \edef\subfiles@list{{\subfix{}}\subfiles@list}%
     \expandafter\subfiles@graphicspath\expandafter{\subfiles@list}%
+  }%
+}{}
+\@ifpackageloaded{standalone}{%
+  \let\subfiles@includestandalone\includestandalone
+  \def\includestandalone{%
+    \ifcsname subfiles@end\endcsname
+      \expandafter
+      \subfiles@includestandalone@a
+    \else
+      \expandafter
+      \subfiles@includestandalone
+    \fi
+  }%
+  \def\subfiles@includestandalone@a{%
+    \@ifnextchar[%
+      \subfiles@includestandalone@b
+      \subfiles@includestandalone@c
+  }%
+  \def\subfiles@includestandalone@b[#1]#2{%
+    \def\subfiles@includestandalone@i{#1}%
+    \def\subfiles@includestandalone@ii{#2}%
+    \subfiles@includestandalone@d
+  }%
+  \def\subfiles@includestandalone@c#1{%
+    \def\subfiles@includestandalone@ii{#1}%
+    \subfiles@includestandalone@d
+  }%
+  \def\subfiles@includestandalone@d{%
+    \let\subfiles@end@\end
+    \let\end\subfiles@end
+    \ifcsname subfiles@includestandalone@i\endcsname
+      \expandafter\expandafter\expandafter\subfiles@includestandalone
+        \expandafter\expandafter\expandafter[\expandafter\subfiles@includestandalone@i
+          \expandafter]\expandafter{\subfiles@includestandalone@ii}%
+    \else
+      \expandafter\subfiles@includestandalone\expandafter{\subfiles@includestandalone@ii}%
+    \fi
+    \let\end\subfiles@end@
   }%
 }{}
 \newcommand\ifSubfilesClassLoaded{%
@@ -142,17 +204,7 @@
   \fi
 }
 \ifSubfilesClassLoaded{%
-  \let\subfiles@begin\begin
-  \def\begin#1{%
-    \def\subfiles@tmp{#1}%
-    \ifx\subfiles@tmp\subfiles@DOCUMENT
-      \let\begin\subfiles@begin
-      \let\subfiles@tmp\subfiles@handleMain
-    \else
-      \def\subfiles@tmp{\subfiles@begin{#1}}%
-    \fi
-    \subfiles@tmp
-  }%
+  \subfiles@handleMainDocument
 }{}
 \endinput
 %%

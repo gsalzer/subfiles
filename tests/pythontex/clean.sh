@@ -1,4 +1,4 @@
 #!/bin/bash
 
 rm -rf pythontex-files* venv
-rm *.log *.aux *.pdf *.pytxcode
+rm -f *.log *.aux *.pdf *.pytxcode

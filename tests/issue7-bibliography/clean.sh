@@ -1,3 +1,3 @@
 #/bin/sh
 
-rm *.{aux,log,pdf,bbl,blg}
+rm -f *.{aux,log,pdf,bbl,blg}
