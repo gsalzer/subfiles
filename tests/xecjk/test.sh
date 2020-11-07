@@ -2,7 +2,7 @@
   
 source ../functions.sh
 
-LATEX="lua${LATEX#pdf}"
+LATEX="xe${LATEX#pdf}"
 
 run_latex main
 run_latex sub

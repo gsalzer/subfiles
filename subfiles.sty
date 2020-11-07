@@ -26,7 +26,7 @@
 %% and the derived files subfiles.sty and subfiles.pdf
 %% 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{subfiles}[2020/10/24 v2.1 Multi-file projects (package)]
+\ProvidesPackage{subfiles}[2020/10/29 v2.1 Multi-file projects (package)]
 \def\subfiles@DOCUMENT{document}
 \def\ifDOCUMENT#1#2#3{%
   \def\subfiles@tmp{#1}%
@@ -35,37 +35,34 @@
   \else
     \def\subfiles@tmp{#3}%
   \fi
-  \subfiles@tmp    
+  \subfiles@tmp
 }
-\def\subfiles@newDocument#1#2#3{%
-  \def#1##1{\ifDOCUMENT{##1}{#2}{#3{##1}}}%
+\def\subfiles@renewDocument#1#2{%
+  \expandafter\def\csname#1\endcsname##1{%
+    \ifDOCUMENT{##1}{%
+      \expandafter\let\csname#1\expandafter\endcsname\csname subfiles@#1\endcsname
+      #2%
+    }{%
+      \csname subfiles@#1\endcsname{##1}%
+    }%
+  }%
 }
 \def\subfiles@newSkipToDocument#1#2#3{%
   \long\def#2##1#1##2{\ifDOCUMENT{##2}{#3}{#2}}%
 }
 \def\subfiles@handleMainDocumentVi{%
   \let\subfiles@begin\begin
-  \subfiles@newDocument\begin{%
-    \let\begin\subfiles@begin
-    \subfiles@newSkipToDocument\end\subfiles@skipToEndDocument{%
-      \ignorespaces
-    }%
+  \subfiles@renewDocument{begin}{%
+    \subfiles@newSkipToDocument\end\subfiles@skipToEndDocument\ignorespaces
     \subfiles@skipToEndDocument
-  }\subfiles@begin
+  }%
 }
 \def\subfiles@handleMainDocumentVii{%
   \let\subfiles@begin\begin
-  \subfiles@newDocument\begin{%
-    \let\begin\subfiles@begin
+  \subfiles@renewDocument{begin}{%
     \endinput
     \ignorespaces
-  }\subfiles@begin
-}
-\def\subfiles@saveEnd{%
-  \ifcsname subfiles@end\endcsname
-  \else
-    \let\subfiles@end\end
-  \fi
+  }%
 }
 \def\subfiles@handleSubDocumentVi{%
   \let\subfiles@documentclass\documentclass
@@ -77,28 +74,29 @@
     \ignorespaces
   }%
   \let\subfiles@begin\begin
-  \subfiles@newDocument\begin{%
-    \let\begin\subfiles@begin
+  \subfiles@renewDocument{begin}{%
     \subfiles@saveEnd
-    \subfiles@newDocument\end{%
-      \let\end\subfiles@end
-      \ignorespaces
-    }\subfiles@end
+    \subfiles@renewDocument{end}\ignorespaces
     \ignorespaces
-  }\subfiles@begin
+  }%
 }
 \def\subfiles@handleSubDocumentVii{%
   \let\subfiles@documentclass\documentclass
   \subfiles@newSkipToDocument\begin\documentclass{%
     \let\documentclass\subfiles@documentclass
     \subfiles@saveEnd
-    \subfiles@newDocument\end{%
-      \let\end\subfiles@end
+    \subfiles@renewDocument{end}{%
       \endinput
       \ignorespaces
-    }\subfiles@end
+    }%
     \ignorespaces
   }%
+}
+\def\subfiles@saveEnd{%
+  \ifcsname subfiles@end\endcsname
+  \else
+    \let\subfiles@end\end
+  \fi
 }
 \let\subfiles@handleMainDocument\subfiles@handleMainDocumentVii
 \let\subfiles@handleSubDocument\subfiles@handleSubDocumentVii
@@ -158,43 +156,15 @@
     \expandafter\subfiles@graphicspath\expandafter{\subfiles@list}%
   }%
 }{}
-\@ifpackageloaded{standalone}{%
-  \let\subfiles@includestandalone\includestandalone
-  \def\includestandalone{%
-    \ifcsname subfiles@end\endcsname
-      \expandafter
-      \subfiles@includestandalone@a
-    \else
-      \expandafter
-      \subfiles@includestandalone
-    \fi
-  }%
-  \def\subfiles@includestandalone@a{%
-    \@ifnextchar[%
-      \subfiles@includestandalone@b
-      \subfiles@includestandalone@c
-  }%
-  \def\subfiles@includestandalone@b[#1]#2{%
-    \def\subfiles@includestandalone@i{#1}%
-    \def\subfiles@includestandalone@ii{#2}%
-    \subfiles@includestandalone@d
-  }%
-  \def\subfiles@includestandalone@c#1{%
-    \def\subfiles@includestandalone@ii{#1}%
-    \subfiles@includestandalone@d
-  }%
-  \def\subfiles@includestandalone@d{%
+\@ifpackageloaded{standalone}{
+  \RequirePackage{xpatch}
+  \xpretocmd\includestandalone{%
     \let\subfiles@end@\end
-    \let\end\subfiles@end
-    \ifcsname subfiles@includestandalone@i\endcsname
-      \expandafter\expandafter\expandafter\subfiles@includestandalone
-        \expandafter\expandafter\expandafter[\expandafter\subfiles@includestandalone@i
-          \expandafter]\expandafter{\subfiles@includestandalone@ii}%
-    \else
-      \expandafter\subfiles@includestandalone\expandafter{\subfiles@includestandalone@ii}%
+    \ifcsname subfiles@end\endcsname
+      \let\end\subfiles@end
     \fi
-    \let\end\subfiles@end@
-  }%
+  }{}{}
+  \xapptocmd\includestandalone{\let\end\subfiles@end@}{}{}
 }{}
 \newcommand\ifSubfilesClassLoaded{%
   \expandafter\ifx\csname ver@subfiles.cls\endcsname\relax
