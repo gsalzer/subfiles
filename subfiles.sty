@@ -26,40 +26,49 @@
 %% and the derived files subfiles.sty and subfiles.pdf
 %% 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{subfiles}[2020/10/29 v2.1 Multi-file projects (package)]
-\def\subfiles@DOCUMENT{document}
-\def\ifDOCUMENT#1#2#3{%
-  \def\subfiles@tmp{#1}%
-  \ifx\subfiles@tmp\subfiles@DOCUMENT
-    \def\subfiles@tmp{#2}%
-  \else
-    \def\subfiles@tmp{#3}%
-  \fi
-  \subfiles@tmp
-}
-\def\subfiles@renewDocument#1#2{%
-  \expandafter\def\csname#1\endcsname##1{%
-    \ifDOCUMENT{##1}{%
-      \expandafter\let\csname#1\expandafter\endcsname\csname subfiles@#1\endcsname
-      #2%
+\ProvidesPackage{subfiles}[2020/11/14 v2.2 Multi-file projects (package)]
+\ExplSyntaxOn
+\cs_new_eq:NN \subfiles@StrIfEqTF \str_if_eq:nnTF
+\ExplSyntaxOff
+\def\subfiles@renewBeginDocument#1{%
+  \let\subfiles@begin\begin
+  \def\begin##1{%
+    \subfiles@StrIfEqTF{##1}{document}{%
+      \let\begin\subfiles@begin
+      #1%
     }{%
-      \csname subfiles@#1\endcsname{##1}%
+      \csname subfiles@begin\endcsname{##1}%
     }%
   }%
 }
-\def\subfiles@newSkipToDocument#1#2#3{%
-  \long\def#2##1#1##2{\ifDOCUMENT{##2}{#3}{#2}}%
+\def\subfiles@saveEndTo#1{\expandafter\let\expandafter#1\csname end \endcsname}
+\def\subfiles@restoreEndFrom{\expandafter\let\csname end \endcsname}
+\def\subfiles@renewEndDocument#1{%
+  \ifcsname subfiles@end\endcsname
+  \else
+    \subfiles@saveEndTo\subfiles@end
+  \fi
+  \expandafter\def\csname end \endcsname##1{%
+    \romannumeral
+    \subfiles@StrIfEqTF{##1}{document}{%
+      \z@
+      \subfiles@restoreEndFrom\subfiles@end
+      #1%
+    }{%
+      \expandafter\expandafter\expandafter\z@\subfiles@end{##1}%
+    }%
+  }%
 }
 \def\subfiles@handleMainDocumentVi{%
-  \let\subfiles@begin\begin
-  \subfiles@renewDocument{begin}{%
-    \subfiles@newSkipToDocument\end\subfiles@skipToEndDocument\ignorespaces
+  \long\def\subfiles@skipToEndDocument##1\end##2{%
+    \subfiles@StrIfEqTF{##2}{document}{\ignorespaces}{\subfiles@skipToEndDocument}%
+  }%
+  \subfiles@renewBeginDocument{%
     \subfiles@skipToEndDocument
   }%
 }
 \def\subfiles@handleMainDocumentVii{%
-  \let\subfiles@begin\begin
-  \subfiles@renewDocument{begin}{%
+  \subfiles@renewBeginDocument{%
     \endinput
     \ignorespaces
   }%
@@ -73,30 +82,23 @@
     \let\documentclass\subfiles@documentclass
     \ignorespaces
   }%
-  \let\subfiles@begin\begin
-  \subfiles@renewDocument{begin}{%
-    \subfiles@saveEnd
-    \subfiles@renewDocument{end}\ignorespaces
+  \subfiles@renewBeginDocument{%
+    \subfiles@renewEndDocument\ignorespaces
     \ignorespaces
   }%
 }
 \def\subfiles@handleSubDocumentVii{%
   \let\subfiles@documentclass\documentclass
-  \subfiles@newSkipToDocument\begin\documentclass{%
-    \let\documentclass\subfiles@documentclass
-    \subfiles@saveEnd
-    \subfiles@renewDocument{end}{%
-      \endinput
+  \long\def\documentclass##1\begin##2{%
+    \subfiles@StrIfEqTF{##2}{document}{%
+      \let\documentclass\subfiles@documentclass
+      \subfiles@renewEndDocument{%
+        \endinput
+        \ignorespaces
+      }%
       \ignorespaces
-    }%
-    \ignorespaces
+    }{\documentclass}
   }%
-}
-\def\subfiles@saveEnd{%
-  \ifcsname subfiles@end\endcsname
-  \else
-    \let\subfiles@end\end
-  \fi
 }
 \let\subfiles@handleMainDocument\subfiles@handleMainDocumentVii
 \let\subfiles@handleSubDocument\subfiles@handleSubDocumentVii
@@ -159,12 +161,12 @@
 \@ifpackageloaded{standalone}{
   \RequirePackage{xpatch}
   \xpretocmd\includestandalone{%
-    \let\subfiles@end@\end
+    \subfiles@saveEndTo\subfiles@end@
     \ifcsname subfiles@end\endcsname
-      \let\end\subfiles@end
+      \subfiles@restoreEndFrom\subfiles@end
     \fi
   }{}{}
-  \xapptocmd\includestandalone{\let\end\subfiles@end@}{}{}
+  \xapptocmd\includestandalone{\subfiles@restoreEndFrom\subfiles@end@}{}{}
 }{}
 \newcommand\ifSubfilesClassLoaded{%
   \expandafter\ifx\csname ver@subfiles.cls\endcsname\relax

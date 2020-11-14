@@ -26,7 +26,7 @@
 %% and the derived files subfiles.sty and subfiles.pdf
 %% 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{subfiles}[2020/10/29 v2.1 Multi-file projects (class)]
+\ProvidesClass{subfiles}[2020/11/14 v2.2 Multi-file projects (class)]
 \DeclareOption*{%
   \typeout{Preamble taken from file `\CurrentOption'}%
   \let\preamble@file\CurrentOption
