@@ -23,12 +23,12 @@
 %
 %<*driver>
 % \fi
-\ProvidesFile{subfiles.dtx}[2020/10/29 v2.1 Multi-file projects]
+\ProvidesFile{subfiles.dtx}[2020/11/14 v2.2 Multi-file projects]
 % \iffalse
 \documentclass{ltxdoc}
 \GetFileInfo{subfiles.dtx}
 \title{A Document Class and a Package\\for Handling Multi-File Projects}
-\date{2020/10/29 v2.1}
+\date{2020/11/14 v2.2}
 \author{Federico Garcia, Gernot Salzer}
 \usepackage{hyperref}
 \begin{document}
@@ -208,7 +208,7 @@
 % This will have three effects.
 %
 % \emph{Code after the end of the main document} is added to the preamble of the subfiles, but is ignored when typesetting the main file.
-% Here, one can add commands that are to be processed as part of the preamble when the subfiles are typeset on their own.
+% Here, one can add commands that are to be processed as part of the preamble when the subfiles are typeset on their one.
 % But this also means that any syntax error after |\end{document}| will ruin the \LaTeX ing of the subfile(s).
 %
 % \emph{Code in the preamble of a subfile} is processed as part of the text when typesetting the main file, but as part of the preamble when typesetting the subfile.
@@ -340,7 +340,7 @@
 % \item
 %   Make sure to use the most recent version of the |subfiles| package, available from CTAN\footnote{\url{https://ctan.org/pkg/subfiles}} and Github\footnote{\url{https://github.com/gsalzer/subfiles}}.
 % \item
-%   Make sure that |\usepackage{subfiles}| appears near the end of the main preamble.
+%   Make sure that |\usepackage{subfiles}| appears near the end of the main preamble. If you need the package |standalone|, then it has to be loaded before |subfiles|.
 % \item
 %   If some external program that cooperates with \TeX, like |bibtex| or |biber|, complains about not being able to find a file, locate the name of the file in the \LaTeX\ source and replace \meta{filename} by |\subfix{|\meta{filename}|}|.
 % \item
@@ -410,6 +410,10 @@
 %   \item Section about cross-referencing added.
 %     Thanks to Github user |ndvanforeest| for the input.
 %   \end{itemize}
+% \item[v2.2]
+%   \begin{itemize}
+%   \item Bugfix: The bugfix of v2.1 introduced an incompatibility with |tabular| environments in subfiles. Thanks to |yuishin-kikuchi| and |nvmnghia| on Github for reporting the issue. Kudos to |Phelype Oleinik| on tex.stackexchange.com for explaining the intricacies of the |tabular| environment and its interaction with the |\end| command.
+%   \end{itemize}
 % \end{enumerate}
 %
 %\section{The Implementation}
@@ -421,7 +425,7 @@
 %
 %    \begin{macrocode}
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{subfiles}[2020/10/29 v2.1 Multi-file projects (class)]
+\ProvidesClass{subfiles}[2020/11/14 v2.2 Multi-file projects (class)]
 \DeclareOption*{%
   \typeout{Preamble taken from file `\CurrentOption'}%
   \let\preamble@file\CurrentOption
@@ -484,81 +488,86 @@
 %
 %    \begin{macrocode}
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{subfiles}[2020/10/29 v2.1 Multi-file projects (package)]
+\ProvidesPackage{subfiles}[2020/11/14 v2.2 Multi-file projects (package)]
 %    \end{macrocode}
 % \subsubsection*{Auxiliary commands}
-% \begin{flushleft}
-%   |\ifDOCUMENT{|\meta{string}|}{|\meta{then code}|}{|\meta{else code}|}|\\
-%   If \meta{string} equals |document|, then execute \meta{then code}, else \meta{else code}.
-% \end{flushleft}
+%
+% When redefining the |\end| command, we have to have to keep it expandable to a certain depth.
+% Therefore we need an expandable way to compare strings.
+% We borrow the function from LaTeX's |expl3| part.
+%
 %    \begin{macrocode}
-\def\subfiles@DOCUMENT{document}
-\def\ifDOCUMENT#1#2#3{%
-  \def\subfiles@tmp{#1}%
-  \ifx\subfiles@tmp\subfiles@DOCUMENT
-    \def\subfiles@tmp{#2}%
-  \else
-    \def\subfiles@tmp{#3}%
-  \fi
-  \subfiles@tmp
-}
+\ExplSyntaxOn
+\cs_new_eq:NN \subfiles@StrIfEqTF \str_if_eq:nnTF
+\ExplSyntaxOff
 %    \end{macrocode}
 %
-% \begin{flushleft}
-%   |\subfiles@renewDocument{begin}{|\meta{begin-document-code}|}|\\ 
-%   |\subfiles@renewDocument{end}{|\meta{end-document-code}|}|\\
-% Redefines |\begin|/|\end| to execute the given code in place of the next |\begin{document}|/|\end{document}|.
-% \end{flushleft}
+% The macro |\subfiles@renewBeginDocument{|\meta{code}|}| redefines |\begin| such that the next |\begin{document}| executes \meta{code} (and then restores the original definition of |\begin|).
+%
 %    \begin{macrocode}
-\def\subfiles@renewDocument#1#2{%
-  \expandafter\def\csname#1\endcsname##1{%
-    \ifDOCUMENT{##1}{%
-      \expandafter\let\csname#1\expandafter\endcsname\csname subfiles@#1\endcsname
-      #2%
+\def\subfiles@renewBeginDocument#1{%
+  \let\subfiles@begin\begin
+  \def\begin##1{%
+    \subfiles@StrIfEqTF{##1}{document}{%
+      \let\begin\subfiles@begin
+      #1%
     }{%
-      \csname subfiles@#1\endcsname{##1}%
+      \csname subfiles@begin\endcsname{##1}%
     }%
   }%
 }
 %    \end{macrocode}
-% |\subfiles@renewDocument{begin}{<code>}| is actually the same as
-% \begin{verbatim}
-%\def\begin#1{%
-%    \ifDOCUMENT{#1}{%
-%        \let\begin\subfiles@begin
-%        <code>
-%    }{%
-%        \subfiles@begin{#1}%
-%    }%
-%}%\end{verbatim}
-% \begin{flushleft}
-% |\subfiles@newSkipToDocument\begin|\meta{cmd}|{|\meta{continuation}|}|\\
-% |\subfiles@newSkipToDocument\end|\meta{cmd}|{|\meta{continuation}|}|\\
-% Defines \meta{cmd} to skip to the next |\begin{document}| or |\end{document}| and to execute \meta{continuation}.
-% \end{flushleft}
+%
+% The macro |\subfiles@renewEndDocument{|\meta{code}|}| redefines |\end| such that the next |\end{document}| executes \meta{code} (and then restores the original definition of |\end|).
+% This macro is more complex then the previous one, as we have to ensure that
+% |\expandafter\expandafter\expandafter\relax\end{env}| expands to |\relax\endenv|.
+% This is necessary for |tabular|s to work correctly.
 %
 %    \begin{macrocode}
-\def\subfiles@newSkipToDocument#1#2#3{%
-  \long\def#2##1#1##2{\ifDOCUMENT{##2}{#3}{#2}}%
+\def\subfiles@saveEndTo#1{\expandafter\let\expandafter#1\csname end \endcsname}
+\def\subfiles@restoreEndFrom{\expandafter\let\csname end \endcsname}
+\def\subfiles@renewEndDocument#1{%
+  \ifcsname subfiles@end\endcsname
+  \else
+    \subfiles@saveEndTo\subfiles@end
+  \fi
+  \expandafter\def\csname end \endcsname##1{%
+    \romannumeral
+    \subfiles@StrIfEqTF{##1}{document}{%
+      \z@
+      \subfiles@restoreEndFrom\subfiles@end
+      #1%
+    }{%
+      \expandafter\expandafter\expandafter\z@\subfiles@end{##1}%
+    }%
+  }%
 }
 %    \end{macrocode}
 %
 % \subsubsection*{Handling the main document}
 %
 % When the main document is loaded from a subfile, the preamble is read, but the document itself is skipped.
-% The lines after |\end{document}| are treated again as part of the preamble in old versions (1.x), but are ignored in new versions (2.x).
+% The end of the preamble is marked by |\begin{document}|.
+% In version 1.x of the |subfiles| package, everything up to (and including) |\end{document}| is skipped, but the lines following it are treated again as part of the preamble.
+% The macro |\subfiles@handleMainDocumentVi| redefines |\begin{document}| accordingly.
 % 
 %    \begin{macrocode}
 \def\subfiles@handleMainDocumentVi{%
-  \let\subfiles@begin\begin
-  \subfiles@renewDocument{begin}{%
-    \subfiles@newSkipToDocument\end\subfiles@skipToEndDocument\ignorespaces
+  \long\def\subfiles@skipToEndDocument##1\end##2{%
+    \subfiles@StrIfEqTF{##2}{document}{\ignorespaces}{\subfiles@skipToEndDocument}%
+  }%
+  \subfiles@renewBeginDocument{%
     \subfiles@skipToEndDocument
   }%
 }
+%    \end{macrocode}
+%
+% In version 2.x of the |subfiles| package, everything following |\begin{document}| is ignored.
+% The macro |\subfiles@handleMainDocumentVii| redefines this command accordingly.
+% 
+%    \begin{macrocode}
 \def\subfiles@handleMainDocumentVii{%
-  \let\subfiles@begin\begin
-  \subfiles@renewDocument{begin}{%
+  \subfiles@renewBeginDocument{%
     \endinput
     \ignorespaces
   }%
@@ -587,10 +596,8 @@
     \let\documentclass\subfiles@documentclass
     \ignorespaces
   }%
-  \let\subfiles@begin\begin
-  \subfiles@renewDocument{begin}{%
-    \subfiles@saveEnd
-    \subfiles@renewDocument{end}\ignorespaces
+  \subfiles@renewBeginDocument{%
+    \subfiles@renewEndDocument\ignorespaces
     \ignorespaces
   }%
 }
@@ -604,31 +611,16 @@
 %    \begin{macrocode}
 \def\subfiles@handleSubDocumentVii{%
   \let\subfiles@documentclass\documentclass
-  \subfiles@newSkipToDocument\begin\documentclass{%
-    \let\documentclass\subfiles@documentclass
-    \subfiles@saveEnd
-    \subfiles@renewDocument{end}{%
-      \endinput
+  \long\def\documentclass##1\begin##2{%
+    \subfiles@StrIfEqTF{##2}{document}{%
+      \let\documentclass\subfiles@documentclass
+      \subfiles@renewEndDocument{%
+        \endinput
+        \ignorespaces
+      }%
       \ignorespaces
-    }%
-    \ignorespaces
+    }{\documentclass}
   }%
-}
-%    \end{macrocode}
-%
-% Before redefining |\begin| and |\end|, we remember their original definitions in |\subfiles@begin| and |\subfiles@end|.
-% We don't do this once and for all in the preamble, because there might be other packages also fiddling with these commands.
-% To reset |\begin| to the definition it had at the point where we modified it, we do |\let\subfiles@begin\begin| immediately before redefining it.
-% For |\end|, the situation is different.
-% For nested subfiles, |\end| does not have its original definition but ours.
-% Therefore we save |\end| only if |\subfiles@end| is still undefined (meaning that we are outside of subfiles).
-%
-%    \begin{macrocode}
-\def\subfiles@saveEnd{%
-  \ifcsname subfiles@end\endcsname
-  \else
-    \let\subfiles@end\end
-  \fi
 }
 %    \end{macrocode}
 %
@@ -766,12 +758,12 @@
 \@ifpackageloaded{standalone}{
   \RequirePackage{xpatch}
   \xpretocmd\includestandalone{%
-    \let\subfiles@end@\end
+    \subfiles@saveEndTo\subfiles@end@
     \ifcsname subfiles@end\endcsname
-      \let\end\subfiles@end
+      \subfiles@restoreEndFrom\subfiles@end
     \fi
   }{}{}
-  \xapptocmd\includestandalone{\let\end\subfiles@end@}{}{}
+  \xapptocmd\includestandalone{\subfiles@restoreEndFrom\subfiles@end@}{}{}
 }{}
 %    \end{macrocode}
 %
