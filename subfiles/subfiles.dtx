@@ -525,6 +525,7 @@
 % We also have to consider different definitions for |\end| dependent on the \LaTeX\ format in charge.
 %
 %    \begin{macrocode}
+\providecommand*\IfFormatAtLeastTF{\@ifl@t@r\fmtversion}
 \IfFormatAtLeastTF{2019/10/01}{%
 \def\subfiles@saveEndTo#1{\expandafter\let\expandafter#1\csname end \endcsname}
 \def\subfiles@restoreEndFrom{\expandafter\let\csname end \endcsname}
