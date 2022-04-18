@@ -522,16 +522,25 @@
 % This macro is more complex then the previous one, as we have to ensure that
 % |\expandafter\expandafter\expandafter\relax\end{env}| expands to |\relax\endenv|.
 % This is necessary for |tabular|s to work correctly.
+% We also have to consider different definitions for |\end| dependent on the \LaTeX\ format in charge.
 %
 %    \begin{macrocode}
+\providecommand*\IfFormatAtLeastTF{\@ifl@t@r\fmtversion}
+\IfFormatAtLeastTF{2019/10/01}{%
 \def\subfiles@saveEndTo#1{\expandafter\let\expandafter#1\csname end \endcsname}
 \def\subfiles@restoreEndFrom{\expandafter\let\csname end \endcsname}
+\def\subfiles@redefineEnd{\expandafter\def\csname end \endcsname}
+}{%
+\def\subfiles@saveEndTo#1{\let#1\end}
+\def\subfiles@restoreEndFrom{\let\end}
+\def\subfiles@redefineEnd{\def\end}
+}
 \def\subfiles@renewEndDocument#1{%
   \ifcsname subfiles@end\endcsname
   \else
     \subfiles@saveEndTo\subfiles@end
   \fi
-  \expandafter\def\csname end \endcsname##1{%
+  \subfiles@redefineEnd##1{%
     \romannumeral
     \subfiles@StrIfEqTF{##1}{document}{%
       \z@
